@@ -20,62 +20,36 @@
 html{scroll-behavior:smooth;}
 body{font-family:var(--sans);background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;}
 
-/* ── SCROLLBAR ── */
+/* SCROLLBAR */
 ::-webkit-scrollbar{width:3px;height:3px;}
 ::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px;}
 
-/* ══════════════════════════
-   TELA LOGIN
-══════════════════════════ */
+/* TELA LOGIN */
 #login-screen{
   min-height:100vh;display:flex;align-items:center;justify-content:center;
   background:var(--bg);position:relative;overflow:hidden;
 }
-#login-screen::before{
-  content:'';position:absolute;width:800px;height:800px;
-  background:radial-gradient(circle,rgba(56,189,248,0.04) 0%,transparent 65%);
-  top:-300px;left:-200px;pointer-events:none;
-}
-#login-screen::after{
-  content:'';position:absolute;width:500px;height:500px;
-  background:radial-gradient(circle,rgba(129,140,248,0.04) 0%,transparent 65%);
-  bottom:-150px;right:-100px;pointer-events:none;
-}
-.login-box{
-  width:100%;max-width:400px;padding:24px;position:relative;z-index:1;
-}
+.login-box{ width:100%;max-width:400px;padding:24px;position:relative;z-index:1; }
 .login-logo{text-align:center;margin-bottom:36px;}
 .login-logo .brand{font-size:32px;font-weight:700;color:var(--a);letter-spacing:-1px;}
-.login-logo .ver{font-size:10px;color:var(--mu);letter-spacing:4px;text-transform:uppercase;margin-top:2px;}
-.login-card{
-  background:var(--card);border:1px solid var(--bdr2);
-  border-radius:var(--rr);padding:28px 24px;
-}
+.login-card{ background:var(--card);border:1px solid var(--bdr2);border-radius:var(--rr);padding:28px 24px; }
 .lf{margin-bottom:14px;}
 .lf label{display:block;font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;}
-.lf input,.lf select{
+.lf input{
   width:100%;background:var(--bg3);border:1px solid var(--bdr);
   border-radius:var(--rs);padding:11px 13px;color:var(--tx);
-  font-family:var(--sans);font-size:14px;outline:none;transition:border .15s;
+  font-family:var(--sans);font-size:14px;outline:none;
 }
-.lf input:focus,.lf select:focus{border-color:var(--a);}
-.lf select option{background:var(--bg3);}
 .btn-login{
   width:100%;background:var(--a);color:#000;border:none;
-  border-radius:var(--rs);padding:13px;font-family:var(--sans);
-  font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.5px;
-  transition:opacity .15s,transform .1s;margin-top:6px;
+  border-radius:var(--rs);padding:13px;font-weight:700;cursor:pointer;
 }
-.btn-login:hover{opacity:.9;}
-.btn-login:active{transform:scale(.98);}
 .lerr{color:var(--r);font-size:12px;text-align:center;margin-top:10px;display:none;}
 
-/* ══════════════════════════
-   APP SHELL (Restante do seu código CSS aqui...)
-══════════════════════════ */
+/* APP SHELL */
 #app{display:none;min-height:100vh;flex-direction:column;}
 #app.show{display:flex;}
-/* ... (MANTIVE TODOS OS SEUS ESTILOS ORIGINAIS ABAIXO) ... */
+.topbar{ height:52px;background:var(--card);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 16px;gap:12px; }
 </style>
 </head>
 <body>
@@ -84,31 +58,35 @@ body{font-family:var(--sans);background:var(--bg);color:var(--tx);min-height:100
 <div class="login-box">
   <div class="login-logo">
     <div class="brand">LOGITREIN 4.0</div>
-    <div class="ver">Sistema de Gestão Operacional</div>
   </div>
   <div class="login-card">
-    <div class="lf"><label>Usuário</label><input id="lu" placeholder="ex: carlos.mendes" autocomplete="off"></div>
+    <div class="lf"><label>Usuário</label><input id="lu" placeholder="ex: carlos.mendes"></div>
     <div class="lf"><label>Senha</label><input id="lp" type="password" placeholder="••••••••"></div>
     <button class="btn-login" onclick="doLogin()">ACESSAR SISTEMA</button>
     <div class="lerr" id="lerr">Usuário ou senha incorretos.</div>
   </div>
+</div>
+</div>
+
+<script>
+function doLogin() {
+  const u = document.getElementById('lu').value;
+  const p = document.getElementById('lp').value;
+  // Simulação simples de login para teste
+  if(u === 'gestor' && p === 'gest123') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').classList.add('show');
+  } else {
+    document.getElementById('lerr').style.display = 'block';
+  }
+}
+</script>
+
+<div id="app">
+  <div class="topbar">
+    <div style="color:var(--a); font-weight:bold;">LT4 - Logado com Sucesso!</div>
   </div>
 </div>
 
-<div id="app">
-<div class="topbar">
-  <button class="menu-btn" id="menu-btn" onclick="toggleNav()">☰</button>
-  <div class="tb-brand">LT4</div>
-  <div class="tb-title" id="tb-title">Dashboard</div>
-  <div class="tb-right">
-    <div class="tb-live"><div class="tb-dot"></div><span id="tb-clock">00:00</span></div>
-    <div class="tb-user" id="tb-user">
-      <div>
-        <div class="tb-nm" id="tb-nm">—</div>
-        <div class="tb-role" id="tb-role">—</div>
-      </div>
-      <div class="tb-av" id="tb-av">?</div>
-    </div>
-    <button class="btn sm sec" onclick="sair()">Sair</button>
-  </div>
-</div>
+</body>
+</html>
