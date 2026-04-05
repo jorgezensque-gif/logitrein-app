@@ -2,41 +2,49 @@ import streamlit as st
 import streamlit.components.v1 as components
 import os
 
-# Configuração da página
-st.set_page_config(page_title='LogiTrein 4.0', layout='wide', initial_sidebar_state='collapsed')
+# Configuração que remove a barra lateral e usa a largura total
+st.set_page_config(
+    page_title='LogiTrein 4.0', 
+    layout='wide', 
+    initial_sidebar_state='collapsed'
+)
 
-# 1. Tentar encontrar o ficheiro de várias formas
+# CSS para esconder elementos do Streamlit e colar o HTML no topo
+st.markdown("""
+    <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+        .block-container {
+            padding-top: 0rem;
+            padding-bottom: 0rem;
+            padding-left: 0rem;
+            padding-right: 0rem;
+        }
+        iframe {
+            border: none;
+            width: 100%;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# Lógica para encontrar o seu arquivo HTML
 current_dir = os.path.dirname(os.path.abspath(__file__))
-ficheiros_na_pasta = os.listdir(current_dir)
+nome_do_arquivo = 'logitrein ULTIMA REVISÃO .html'
+html_path = os.path.join(current_dir, nome_do_arquivo)
 
-# Nome que aparece no teu GitHub (com o espaço antes do ponto)
-nome_especifico = 'logitrein ULTIMA REVISÃO .html'
-html_data = None
-
-# Lógica de busca blindada
-if os.path.exists(os.path.join(current_dir, nome_especifico)):
-    with open(os.path.join(current_dir, nome_especifico), 'r', encoding='utf-8') as f:
-        html_data = f.read()
-else:
-    # Se não achou pelo nome, procura qualquer .html que esteja na pasta
-    for f_nome in ficheiros_na_pasta:
-        if f_nome.endswith('.html'):
-            with open(os.path.join(current_dir, f_nome), 'r', encoding='utf-8') as f:
-                html_data = f.read()
+# Se você renomeou para logitrein.html, o código abaixo garante que funcione
+if not os.path.exists(html_path):
+    for f in os.listdir(current_dir):
+        if f.endswith('.html'):
+            html_path = os.path.join(current_dir, f)
             break
 
-# 2. Mostrar o conteúdo ou erro amigável
-if html_data:
-    # Remove margens do Streamlit para o HTML ocupar a tela toda
-    st.markdown("""
-        <style>
-            .main > div { padding: 0; }
-            iframe { border: none; }
-        </style>
-    """, unsafe_allow_html=True)
+if os.path.exists(html_path):
+    with open(html_path, 'r', encoding='utf-8') as f:
+        html_data = f.read()
     
+    # Height ajustado para 95% da altura da tela (vh)
     components.html(html_data, height=1200, scrolling=True)
 else:
-    st.error("ERRO CRÍTICO: O sistema não encontrou nenhum ficheiro .html no GitHub.")
-    st.write("Ficheiros detetados:", ficheiros_na_pasta)
-    st.info("Dica: Garante que o ficheiro 'logitrein ULTIMA REVISÃO .html' foi subido corretamente.")
+    st.error("Arquivo HTML não encontrado no GitHub.")
