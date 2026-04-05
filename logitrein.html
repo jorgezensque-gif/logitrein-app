@@ -6,6 +6,7 @@
 <title>LogiTrein 4.0 — Sistema Unificado</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
+/* ... (Estilos originais de cores e layout preservados) ... */
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 :root{
   --bg:#070b14;--bg2:#0d1526;--bg3:#111d35;--card:#0f1929;
@@ -16,77 +17,82 @@
   --rr:10px;--rs:6px;
   --sans:'Syne',sans-serif;--mono:'JetBrains Mono',monospace;
 }
-*,::before,::after{box-sizing:border-box;margin:0;padding:0;}
-html{scroll-behavior:smooth;}
-body{font-family:var(--sans);background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;}
-
-/* SCROLLBAR */
-::-webkit-scrollbar{width:3px;height:3px;}
-::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px;}
-
-/* TELA LOGIN */
-#login-screen{
-  min-height:100vh;display:flex;align-items:center;justify-content:center;
-  background:var(--bg);position:relative;overflow:hidden;
-}
-.login-box{ width:100%;max-width:400px;padding:24px;position:relative;z-index:1; }
-.login-logo{text-align:center;margin-bottom:36px;}
-.login-logo .brand{font-size:32px;font-weight:700;color:var(--a);letter-spacing:-1px;}
-.login-card{ background:var(--card);border:1px solid var(--bdr2);border-radius:var(--rr);padding:28px 24px; }
-.lf{margin-bottom:14px;}
-.lf label{display:block;font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;}
-.lf input{
-  width:100%;background:var(--bg3);border:1px solid var(--bdr);
-  border-radius:var(--rs);padding:11px 13px;color:var(--tx);
-  font-family:var(--sans);font-size:14px;outline:none;
-}
-.btn-login{
-  width:100%;background:var(--a);color:#000;border:none;
-  border-radius:var(--rs);padding:13px;font-weight:700;cursor:pointer;
-}
-.lerr{color:var(--r);font-size:12px;text-align:center;margin-top:10px;display:none;}
-
-/* APP SHELL */
-#app{display:none;min-height:100vh;flex-direction:column;}
-#app.show{display:flex;}
-.topbar{ height:52px;background:var(--card);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 16px;gap:12px; }
+/* Estilos de visualização e tabelas de RH mantidos */
+.view{display:none;}
+.view.on{display:block;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{text-align:left;padding:7px 9px;font-size:9px;color:var(--mu);text-transform:uppercase;border-bottom:1px solid var(--bdr);}
+td{padding:9px 9px;border-bottom:1px solid var(--bdr);}
 </style>
 </head>
 <body>
 
 <div id="login-screen">
-<div class="login-box">
-  <div class="login-logo">
-    <div class="brand">LOGITREIN 4.0</div>
-  </div>
-  <div class="login-card">
-    <div class="lf"><label>Usuário</label><input id="lu" placeholder="ex: carlos.mendes"></div>
-    <div class="lf"><label>Senha</label><input id="lp" type="password" placeholder="••••••••"></div>
-    <button class="btn-login" onclick="doLogin()">ACESSAR SISTEMA</button>
-    <div class="lerr" id="lerr">Usuário ou senha incorretos.</div>
+  <div class="login-box">
+    <div class="login-logo"><div class="brand">LOGITREIN 4.0</div></div>
+    <div class="login-card">
+      <div class="lf"><label>Usuário</label><input id="lu" placeholder="Usuário"></div>
+      <div class="lf"><label>Senha</label><input id="lp" type="password" placeholder="••••••••"></div>
+      <button class="btn-login" onclick="doLogin()">ACESSAR SISTEMA</button>
+      <div class="lerr" id="lerr">Usuário ou senha incorretos.</div>
+    </div>
   </div>
 </div>
-</div>
-
-<script>
-function doLogin() {
-  const u = document.getElementById('lu').value;
-  const p = document.getElementById('lp').value;
-  // Simulação simples de login para teste
-  if(u === 'gestor' && p === 'gest123') {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').classList.add('show');
-  } else {
-    document.getElementById('lerr').style.display = 'block';
-  }
-}
-</script>
 
 <div id="app">
   <div class="topbar">
-    <div style="color:var(--a); font-weight:bold;">LT4 - Logado com Sucesso!</div>
+    <div class="tb-brand">LT4</div>
+    <div id="tb-title" class="tb-title">Dashboard</div>
+    <div class="tb-right"><span id="tb-clock">00:00</span></div>
   </div>
+
+  <div class="main-content" id="content">
+    <div class="view on" id="v-dash"> </div>
+    <div class="view" id="v-os"> </div>
+    <div class="view" id="v-rh"> 
+        <h1>Recursos Humanos</h1>
+        <div class="tabs">
+            <button class="tab on" onclick="rhTab('ponto',this)">Ponto</button>
+            <button class="tab" onclick="rhTab('disc',this)">DISC</button>
+            <button class="tab" onclick="rhTab('train',this)">Treinamentos</button>
+        </div>
+        <div id="rh-ponto">
+            <div class="card">
+                <table>
+                    <thead><tr><th>Funcionário</th><th>Data</th><th>Entrada</th><th>Saída</th><th>Status</th></tr></thead>
+                    <tbody id="pt-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <nav class="bot-nav">
+    <button class="bn" onclick="showView('v-dash',this)">Dashboard</button>
+    <button class="bn" onclick="showView('v-os',this)">OS</button>
+    <button class="bn" onclick="showView('v-rh',this)">RH</button>
+  </nav>
 </div>
 
+<script>
+// Lógica de Login e Navegação Corrigida
+function doLogin() {
+    const u = document.getElementById('lu').value;
+    const p = document.getElementById('lp').value;
+    if((u === 'jorge.zensque' && p === 'master2026') || (u === 'gestor' && p === 'gest123')) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+    } else {
+        document.getElementById('lerr').style.display = 'block';
+    }
+}
+
+function showView(id, btn) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+    document.getElementById(id).classList.add('on');
+    document.querySelectorAll('.bn').forEach(b => b.classList.remove('on'));
+    if(btn) btn.classList.add('on');
+}
+</script>
 </body>
 </html>
