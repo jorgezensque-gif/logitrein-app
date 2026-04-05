@@ -6,7 +6,7 @@
 <title>LogiTrein 4.0 — Sistema Unificado</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* 1. SEU CSS ORIGINAL (TUDO MANTIDO) */
+/* CSS ORIGINAL PRESERVADO */
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 :root{
   --bg:#070b14;--bg2:#0d1526;--bg3:#111d35;--card:#0f1929;
@@ -20,103 +20,120 @@
 *,::before,::after{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:var(--sans);background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;}
 
-/* ESTILO DA BLINDAGEM */
+/* ESTILO DA TELA DE LOGIN (BLINDAGEM) */
 #login-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:10000;}
-.login-card{background:var(--card);border:1px solid var(--bdr2);border-radius:var(--rr);padding:30px;width:320px;}
-.lf input{width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px;color:#fff;margin-bottom:10px;}
+.login-card{background:var(--card);border:1px solid var(--bdr2);border-radius:var(--rr);padding:30px;width:320px;text-align:center;}
+.lf input{width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px;color:#fff;margin-bottom:12px;outline:none;}
 .btn-login{width:100%;background:var(--a);color:#000;border:none;padding:12px;border-radius:var(--rs);font-weight:700;cursor:pointer;}
-#app{display:none;}
-.admin-only{display:none !important;} /* Escondido para operadores */
-.admin-visible{display:flex !important;} /* Mostrar apenas para Jorge/Gestor */
+#app{display:none;flex-direction:column;min-height:100vh;}
 
-/* TODO O RESTANTE DO SEU CSS... (Dashboard, OS, RH, etc.) */
+/* CONTROLE DE VISIBILIDADE DAS ABAS */
+.admin-only { display: none !important; }
+
+/* REAPROVEITANDO SEUS ESTILOS ORIGINAIS */
+.topbar{height:52px;background:var(--card);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 16px;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.tb-brand{font-weight:800;color:var(--a);font-size:18px;letter-spacing:-1px;}
+.tb-title{font-size:12px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:1px;}
+.tb-clock{font-family:var(--mono);font-size:13px;color:var(--a);font-weight:600;}
+
+.main-content{flex:1;padding:16px;padding-bottom:80px;display:flex;flex-direction:column;gap:16px;}
+.view{display:none;}
+.view.on{display:flex;flex-direction:column;gap:16px;}
+
+.bot-nav{position:fixed;bottom:0;width:100%;height:64px;background:var(--card);border-top:1px solid var(--bdr);display:flex;justify-content:space-around;align-items:center;padding:0 10px;z-index:100;}
+.bn{background:none;border:none;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:0.2s;flex:1;}
+.bn.on{color:var(--a);}
+.bn i{font-size:18px;}
+.bn span{font-size:9px;font-weight:600;text-transform:uppercase;}
 </style>
 </head>
 <body>
 
 <div id="login-screen">
   <div class="login-card">
-    <h2 style="text-align:center;color:var(--a);margin-bottom:20px;">LogiTrein 4.0</h2>
-    <div class="lf"><input id="lu" type="text" placeholder="Usuário"></div>
-    <div class="lf"><input id="lp" type="password" placeholder="Senha"></div>
-    <button class="btn-login" onclick="doLogin()">ACESSAR</button>
-    <p id="lerr" style="color:var(--r);font-size:11px;display:none;margin-top:10px;text-align:center;">Erro de acesso.</p>
+    <h2 style="color:var(--a);margin-bottom:20px;font-weight:800;">LOGITREIN 4.0</h2>
+    <div class="lf"><input id="lu" type="text" placeholder="USUÁRIO" autocomplete="off"></div>
+    <div class="lf"><input id="lp" type="password" placeholder="SENHA"></div>
+    <button class="btn-login" onclick="doLogin()">ENTRAR</button>
+    <p id="lerr" style="color:var(--r);font-size:11px;display:none;margin-top:10px;">Acesso negado.</p>
   </div>
 </div>
 
 <div id="app">
   <div class="topbar">
-    <div style="font-weight:700;color:var(--a);">LT4</div>
-    <div id="tb-title">Dashboard</div>
-    <div id="tb-clock">00:00:00</div>
+    <div class="tb-brand">LT4</div>
+    <div id="tb-title" class="tb-title">Dashboard</div>
+    <div id="tb-clock" class="tb-clock">00:00:00</div>
   </div>
 
-  <div id="content">
-    <div class="view on" id="v-dash"> </div>
-    
-    <div class="view" id="v-rh">
-      <h2>RH - Gestão</h2>
-      <div id="rh-tabs" style="display:flex; gap:8px; margin-bottom:15px; overflow-x:auto;">
-        <button onclick="rhTab('ponto')">Ponto</button>
-        <button class="admin-only" onclick="rhTab('treino')">Treinamento</button>
-        <button class="admin-only" onclick="rhTab('promo')">Promoções</button>
-        <button class="admin-only" onclick="rhTab('recrut')">Recrutamento</button>
-        <button class="admin-only" onclick="rhTab('aval')">Avaliações</button>
-        <button class="admin-only" onclick="rhTab('nr1')">NR1</button>
-        <button class="admin-only" onclick="rhTab('disc')">DiSC</button>
-      </div>
-      <div id="rh-view-content"> </div>
+  <div class="main-content" id="content">
     </div>
-  </div>
+
+  <nav class="bot-nav">
+    <button class="bn on" onclick="showView('v-dash',this)"><span>Dash</span></button>
+    <button class="bn" onclick="showView('v-os',this)"><span>OS</span></button>
+    <button class="bn" onclick="showView('v-rh',this)"><span>RH</span></button>
+  </nav>
 </div>
 
 <script>
 // ═══════════════════════════════════════════════════════════════
-// LOGIN BLINDADO (RECUPERANDO TODAS AS FUNÇÕES)
+// SISTEMA DE LOGIN COM FILTRO PARA OPERADORES
 // ═══════════════════════════════════════════════════════════════
 function doLogin() {
   const u = document.getElementById('lu').value.toLowerCase();
   const p = document.getElementById('lp').value;
 
-  const isAdmin = (u === 'jorge.zensque' && p === 'master2026') || (u === 'gestor' && p === 'gest123');
+  const isMaster = (u === 'jorge.zensque' && p === 'master2026') || (u === 'gestor' && p === 'gest123');
   const isOp = (u.startsWith('op') && p === 'op123');
 
-  if (isAdmin || isOp) {
+  if (isMaster || isOp) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
 
-    // Se for Jorge/Gestor, libera as abas de treinamento e promoções
-    if(isAdmin) {
-      document.querySelectorAll('.admin-only').forEach(el => {
-        el.style.setProperty('display', 'block', 'important');
-      });
+    // Se for Operador, escondemos as abas proibidas de RH
+    if (isOp) {
+       // O código aqui vai ocultar os botões de Treinamento, Promoção, etc.
+       document.querySelectorAll('.tab-rh-btn').forEach(btn => {
+          if (!btn.innerText.includes('PONTO')) {
+             btn.style.display = 'none';
+          }
+       });
     }
 
-    // DISPARA TODAS AS SUAS FUNÇÕES ORIGINAIS
-    initSystem(); 
+    // DISPARA O RELÓGIO E AS FUNÇÕES ORIGINAIS
+    initRealTime();
   } else {
     document.getElementById('lerr').style.display = 'block';
   }
 }
 
-function initSystem() {
-    // Aqui rodam as funções que estavam no seu arquivo original
+function initRealTime() {
     setInterval(updateClock, 1000);
-    if(typeof tick === 'function') setInterval(tick, 1000);
-    renderDashboard();
+    updateClock();
+    // Aqui chamamos as suas funções que renderizam os gráficos e as tabelas
+    if (typeof renderDashboard === 'function') renderDashboard();
 }
-
-// ═══════════════════════════════════════════════════════════════
-// ABAIXO DISSO, COLE TODO O RESTANTE DO SEU SCRIPT ORIGINAL 
-// (renderDashboard, renderOS, renderRH, os dados dos jovens, etc.)
-// ═══════════════════════════════════════════════════════════════
 
 function updateClock() {
-  const n=new Date();
-  document.getElementById('tb-clock').textContent=n.toLocaleTimeString('pt-BR');
+    const n = new Date();
+    const clock = document.getElementById('tb-clock');
+    if(clock) clock.textContent = n.toLocaleTimeString('pt-BR');
 }
 
-// ... COPIE O RESTO DO SEU ARQUIVO logitrein (1).html DAQUI PARA BAIXO ...
+function showView(id, btn) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+    const target = document.getElementById(id);
+    if(target) target.classList.add('on');
+    document.querySelectorAll('.bn').forEach(b => b.classList.remove('on'));
+    if(btn) btn.classList.add('on');
+    document.getElementById('tb-title').textContent = id.replace('v-', '').toUpperCase();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COLE AQUI TODO O RESTANTE DO SEU CÓDIGO (LINHA 450 EM DIANTE)
+// DO ARQUIVO "logitrein (1).html" - OS DADOS, OS GRÁFICOS, ETC.
+// ═══════════════════════════════════════════════════════════════
 </script>
 </body>
 </html>
