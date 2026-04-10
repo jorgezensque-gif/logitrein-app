@@ -241,6 +241,33 @@ tr:last-child td{border-bottom:none;}
 .tl-t{font-size:13px;font-weight:500;}
 
 @media(min-width:700px){.sg{grid-template-columns:repeat(4,1fr);}}
+
+/* ── MÓDULO IA PEDAGÓGICO ── */
+.ia-box{background:linear-gradient(135deg,rgba(129,140,248,.08),rgba(56,189,248,.05));border:1px solid rgba(129,140,248,.3);border-radius:var(--rr);padding:16px;margin-bottom:12px;}
+.ia-box h3{font-size:13px;font-weight:600;color:#a5b4fc;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.ia-typing{display:inline-block;width:6px;height:14px;background:var(--a);border-radius:2px;animation:blink .7s infinite;}
+.ia-content{font-size:13px;line-height:1.75;color:var(--tx);}
+.ia-content h4{color:#a5b4fc;font-size:14px;font-weight:600;margin:14px 0 6px;}
+.ia-content p{margin-bottom:8px;color:#cbd5e1;}
+.ia-content ul{padding-left:18px;margin-bottom:8px;}
+.ia-content ul li{margin-bottom:4px;color:#cbd5e1;}
+.ia-content strong{color:var(--tx);}
+.ia-content .tag{display:inline-block;background:rgba(129,140,248,.15);color:#a5b4fc;border-radius:20px;padding:2px 8px;font-size:11px;margin:2px;border:1px solid rgba(129,140,248,.2);}
+.ia-content .tag-green{background:rgba(52,211,153,.12);color:var(--g);border-color:rgba(52,211,153,.2);}
+.ia-content .tag-orange{background:rgba(251,146,60,.12);color:var(--o);border-color:rgba(251,146,60,.2);}
+.ia-content .tag-red{background:rgba(248,113,113,.12);color:var(--r);border-color:rgba(248,113,113,.2);}
+.btn-ia{background:linear-gradient(135deg,#6366f1,#38bdf8);color:#fff;border:none;border-radius:var(--rs);padding:10px 18px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:opacity .2s;display:inline-flex;align-items:center;gap:8px;}
+.btn-ia:hover{opacity:.88;}
+.btn-ia:disabled{opacity:.4;cursor:not-allowed;}
+.ia-config{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px;margin-bottom:12px;}
+.ia-config label{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;}
+.ia-config select,.ia-config input{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rs);padding:7px 10px;color:var(--tx);font-family:var(--sans);font-size:12px;outline:none;width:100%;}
+.ia-config select:focus,.ia-config input:focus{border-color:var(--a);}
+.ia-tabs{display:flex;gap:0;border-bottom:1px solid var(--bdr);margin-bottom:14px;overflow-x:auto;}
+.ia-tab{padding:8px 14px;font-size:12px;color:var(--mu);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--sans);font-weight:500;transition:color .15s;}
+.ia-tab.on{color:#a5b4fc;border-bottom-color:#a5b4fc;}
+@keyframes shimmer{0%{opacity:.4;}50%{opacity:1;}100%{opacity:.4;}}
+.ia-loading{animation:shimmer 1.5s infinite;color:var(--mu);font-size:13px;padding:20px 0;text-align:center;}
 </style>
 </head>
 <body>
@@ -326,6 +353,7 @@ tr:last-child td{border-bottom:none;}
   <div class="sb-sec"><div class="sb-sec-lbl">Ferramentas</div>
     <button class="sb-item" onclick="nav('simul',this)"><span class="ico">🎮</span>Simulador OS</button>
     <button class="sb-item" onclick="nav('estoque',this)"><span class="ico">🏭</span>Estoque</button>
+    <button class="sb-item" onclick="nav('pedagogico',this)" style="background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(56,189,248,.08));border:1px solid rgba(129,140,248,.2);"><span class="ico">🧠</span><span style="background:linear-gradient(90deg,#a5b4fc,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent">IA Pedagógica</span></button>
   </div>
 
   <div class="sb-bottom">
@@ -560,6 +588,125 @@ tr:last-child td{border-bottom:none;}
     <div style="margin-bottom:12px"><button class="btn pr" onclick="abrirModal('mod-aval')">+ Avaliação 360°</button></div>
     <div id="aval-list"></div>
     <div class="card" style="margin-top:10px"><div class="ch3">Comparativo</div><div class="ch lg"><canvas id="ch-aval"></canvas></div></div>
+  </div>
+</div>
+
+
+<!-- ══════ VIEW: IA PEDAGÓGICA ══════ -->
+<div class="view" id="v-pedagogico">
+  <div class="ph">
+    <h1 style="background:linear-gradient(90deg,#a5b4fc,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent">🧠 IA Pedagógica</h1>
+    <div class="ps">Geração automática de atividades de ensino baseadas nas OS do dia</div>
+  </div>
+
+  <!-- Configuração -->
+  <div class="ia-config">
+    <div style="display:grid;gap:10px;grid-template-columns:1fr 1fr;">
+      <div>
+        <label>Tipo de Atividade</label>
+        <select id="ia-tipo">
+          <option value="plano">Plano de Aula Completo</option>
+          <option value="dinamica">Dinâmica Vivencial</option>
+          <option value="simulacao">Roteiro de Simulação</option>
+          <option value="avaliacao">Instrumento de Avaliação</option>
+          <option value="estudo">Caso de Estudo</option>
+          <option value="desafio">Desafio da Semana</option>
+        </select>
+      </div>
+      <div>
+        <label>Modalidade</label>
+        <select id="ia-modalidade">
+          <option value="presencial">Presencial (sala/armazém)</option>
+          <option value="online">Online / Assíncrono</option>
+          <option value="hibrido">Híbrido</option>
+        </select>
+      </div>
+      <div>
+        <label>Setor Foco</label>
+        <select id="ia-setor">
+          <option value="todos">Todos os Setores</option>
+          <option value="picking">Picking / Separação</option>
+          <option value="conferencia">Conferência Cega</option>
+          <option value="embalagem">Embalagem</option>
+          <option value="expedicao">Expedição</option>
+          <option value="estoque">Controle de Estoque</option>
+          <option value="compras">Compras / Recebimento</option>
+        </select>
+      </div>
+      <div>
+        <label>Duração da Aula</label>
+        <select id="ia-duracao">
+          <option value="45min">45 minutos</option>
+          <option value="90min">90 minutos</option>
+          <option value="4h">Turno completo (4h)</option>
+          <option value="semana">Semana inteira</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:10px">
+      <label>Observação / Contexto (opcional)</label>
+      <input type="text" id="ia-contexto" placeholder="Ex: turma iniciante, foco em teamwork, avaliação final do mês...">
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-ia" id="btn-gerar-ia" onclick="gerarAtividadeIA()">
+        <span>✨</span> Gerar com IA
+      </button>
+      <button class="btn sec sm" onclick="gerarAtividadeIA('rapido')">⚡ Ideia Rápida</button>
+      <button class="btn sec sm" onclick="gerarAtividadeIA('semana')">📅 Planejar Semana</button>
+    </div>
+  </div>
+
+  <!-- Tabs de resultado -->
+  <div id="ia-resultado-area" style="display:none">
+    <div class="ia-tabs">
+      <button class="ia-tab on" onclick="iaTabSwitch('resultado',this)">📄 Atividade Gerada</button>
+      <button class="ia-tab" onclick="iaTabSwitch('historico',this)">🗂 Histórico</button>
+      <button class="ia-tab" onclick="iaTabSwitch('banco',this)">📚 Banco de Atividades</button>
+    </div>
+
+    <!-- Tab: Resultado -->
+    <div id="ia-tab-resultado">
+      <div class="ia-box" id="ia-output-box">
+        <h3><span>🧠</span> Atividade Gerada pela IA <span class="ia-typing" id="ia-typing" style="display:none"></span></h3>
+        <div class="ia-content" id="ia-output"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px" id="ia-acoes">
+        <button class="btn-ia" onclick="salvarAtividade()">💾 Salvar no Banco</button>
+        <button class="btn sec sm" onclick="copiarAtividade()">📋 Copiar texto</button>
+        <button class="btn sec sm" onclick="gerarAtividadeIA()">🔄 Gerar Nova</button>
+      </div>
+    </div>
+
+    <!-- Tab: Histórico -->
+    <div id="ia-tab-historico" style="display:none">
+      <div id="ia-historico-list"></div>
+    </div>
+
+    <!-- Tab: Banco -->
+    <div id="ia-tab-banco" style="display:none">
+      <div class="ia-box" style="margin-bottom:10px">
+        <h3>📚 Banco de Atividades Salvas</h3>
+        <div id="ia-banco-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado inicial -->
+  <div id="ia-estado-inicial" class="ia-box">
+    <h3>✨ Como funciona</h3>
+    <div class="ia-content">
+      <p>A IA analisa as OS do dia, o perfil dos times e gera atividades pedagógicas completas e prontas para aplicar. Escolha o tipo, setor e duração, depois clique em <strong>Gerar com IA</strong>.</p>
+      <h4>O que a IA pode gerar:</h4>
+      <ul>
+        <li><span class="tag">Plano de Aula</span> com objetivos, conteúdo, metodologia e avaliação</li>
+        <li><span class="tag tag-green">Dinâmica Vivencial</span> para praticar na sala ou no armazém</li>
+        <li><span class="tag tag-orange">Simulação</span> de cenário real com tomada de decisão</li>
+        <li><span class="tag tag-red">Avaliação</span> baseada nas competências das OS</li>
+        <li><span class="tag">Caso de Estudo</span> inspirado em situações reais de logística</li>
+        <li><span class="tag">Desafio</span> semanal para motivar os times</li>
+      </ul>
+      <p style="color:var(--mu);font-size:12px">As atividades são criadas com base nas OS geradas hoje e no perfil real dos seus times.</p>
+    </div>
   </div>
 </div>
 
@@ -1059,7 +1206,7 @@ function startApp(){
 // ══════════════════════════════════════════════════════════════
 // NAVEGAÇÃO
 // ══════════════════════════════════════════════════════════════
-const VIEW_TITLES={dash:'Dashboard',meudia:'Meu Dia',os:'Ordens de Serviço',teams:'Times & Equipes',producao:'Produção ao Vivo',relat:'Relatórios',simul:'Simulador OS',estoque:'Estoque',rh:'Recursos Humanos'};
+const VIEW_TITLES={dash:'Dashboard',meudia:'Meu Dia',os:'Ordens de Serviço',teams:'Times & Equipes',producao:'Produção ao Vivo',relat:'Relatórios',simul:'Simulador OS',estoque:'Estoque',rh:'Recursos Humanos',pedagogico:'IA Pedagógica'};
 function nav(id,btn){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
   const el=document.getElementById('v-'+id);if(el)el.classList.add('on');
@@ -1958,6 +2105,140 @@ function excluirFuncionario(uk){
   renderTeams();
   renderRHPessoas();
   populateSelects();
+}
+
+// ══════════════════════════════════════════════════════════════
+// IA PEDAGÓGICA — Claude API
+// ══════════════════════════════════════════════════════════════
+let iaUltimoTexto='';
+let iaSalvas=JSON.parse(localStorage.getItem('lt4_ia_atividades')||'[]');
+let iaHistorico=JSON.parse(localStorage.getItem('lt4_ia_historico')||'[]');
+
+function iaTabSwitch(id,btn){
+  ['resultado','historico','banco'].forEach(t=>{const el=document.getElementById('ia-tab-'+t);if(el)el.style.display='none';});
+  const el=document.getElementById('ia-tab-'+id);if(el)el.style.display='block';
+  document.querySelectorAll('.ia-tab').forEach(t=>t.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  if(id==='historico')renderIaHistorico();
+  if(id==='banco')renderIaBanco();
+}
+
+function buildPromptIA(modo){
+  const tipo=document.getElementById('ia-tipo')?.value||'plano';
+  const modalidade=document.getElementById('ia-modalidade')?.value||'presencial';
+  const setor=document.getElementById('ia-setor')?.value||'todos';
+  const duracao=document.getElementById('ia-duracao')?.value||'90min';
+  const ctx=document.getElementById('ia-contexto')?.value||'';
+  const os=getOSHoje();
+  const osR=os.slice(0,8).map(o=>'- '+o.tipo+': '+o.desc+' (vol:'+o.volume+', prio:'+o.prioridade+')').join('\n');
+  const times=S.g('times')||{};
+  const users=S.g('users')||{};
+  const nOps=Object.values(users).filter(u=>u.nivel==='OPERACIONAL').length;
+  const nT=Object.keys(times).length;
+  const TIPOS={
+    plano:'um PLANO DE AULA COMPLETO com: título, objetivo geral, objetivos específicos, conteúdos, metodologia passo a passo, materiais, avaliação e dica de adaptação',
+    dinamica:'uma DINÂMICA VIVENCIAL gamificada. Inclua: nome, objetivo, materiais, regras, passo a passo detalhado, debriefing e perguntas de reflexão',
+    simulacao:'um ROTEIRO DE SIMULAÇÃO de cenário logístico com: situação-problema, papéis de cada participante, regras, pontuação, resolução esperada e aprendizados',
+    avaliacao:'um INSTRUMENTO DE AVALIAÇÃO com: critérios, indicadores, escala de notas e gabarito comentado',
+    estudo:'um CASO DE ESTUDO baseado em situação real de CD com: contexto, problema, dados para análise, questões e gabarito',
+    desafio:'um DESAFIO DA SEMANA motivacional com: título impactante, regras, metas por time, sistema de pontuação e critério de campeão'
+  };
+  const MODAL={presencial:'aplicado presencialmente em sala ou no armazém simulado',online:'aplicado de forma online/remota ou assíncrona',hibrido:'híbrido — parte presencial, parte online'};
+  const SETOR={todos:'todos os setores (Picking, Conferência, Embalagem, Expedição, Estoque, Compras)',picking:'Picking e separação de pedidos',conferencia:'Conferência Cega e validação de NF',embalagem:'Embalagem e etiquetagem',expedicao:'Expedição e romaneio',estoque:'Controle de Estoque e inventário',compras:'Compras e recebimento de NF'};
+  if(modo==='rapido') return 'Você é especialista em educação profissional e logística. Crie UMA IDEIA CRIATIVA E RÁPIDA (máximo 250 palavras) de atividade pedagógica para jovens aprendizes de logística de 16-22 anos. Modalidade: '+MODAL[modalidade]+'. Setor: '+SETOR[setor]+'. Use emojis e linguagem jovem. Seja surpreendente e prático.';
+  if(modo==='semana') return 'Você é especialista em educação profissional e logística. Crie um PLANEJAMENTO SEMANAL PEDAGÓGICO para jovens aprendizes do LogiTrein 4.0 (empresa júnior de logística em Palmas/TO).\n\nContexto: '+nT+' times, '+nOps+' operadores.\nOS do dia:\n'+osR+(ctx?'\nObservação: '+ctx:'')+'\n\nCrie o planejamento para 5 dias (seg a sex) — 3 presenciais + 2 online.\nPara cada dia: Tema, Objetivo, Atividade Principal, Metodologia resumida e Avaliação.\nConecte às OS reais. Use emojis. Seja prático.';
+  return 'Você é especialista em educação profissional e logística (ex-gestor de CD Amazon/Mercado Livre). Crie '+TIPOS[tipo]+' para jovens aprendizes de logística.\n\nCONTEXTO LOGITREIN 4.0:\n- Empresa júnior simulando CD de grande porte — Palmas/TO\n- '+nT+' times operando, '+nOps+' operadores\n- Modalidade: '+MODAL[modalidade]+'\n- Setor foco: '+SETOR[setor]+'\n- Duração: '+duracao+(ctx?'\n- Contexto do professor: '+ctx:'')+'\n\nOS GERADAS HOJE:\n'+(osR||'Picking, Conferência, Embalagem, Expedição, Inventário')+'\n\nINSTRUÇÕES:\n- Linguagem acessível para jovens 16-22 anos\n- Conecte teoria com prática real das OS\n- Use emojis para tornar visual\n- Seja específico no passo a passo\n- Inclua dica de adaptação para diferentes níveis';
+}
+
+async function gerarAtividadeIA(modo){
+  if(modo===undefined)modo='normal';
+  const btn=document.getElementById('btn-gerar-ia');
+  const typing=document.getElementById('ia-typing');
+  const output=document.getElementById('ia-output');
+  const estadoInicial=document.getElementById('ia-estado-inicial');
+  const resultArea=document.getElementById('ia-resultado-area');
+  if(estadoInicial)estadoInicial.style.display='none';
+  if(resultArea)resultArea.style.display='block';
+  iaTabSwitch('resultado',document.querySelector('.ia-tab'));
+  if(btn){btn.disabled=true;btn.innerHTML='<span>⏳</span> Gerando...';}
+  if(typing)typing.style.display='inline-block';
+  if(output)output.innerHTML='<div class="ia-loading">✨ A IA está criando sua atividade pedagógica...<br><small>Isso pode levar alguns segundos</small></div>';
+  try{
+    const prompt=buildPromptIA(modo);
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await resp.json();
+    const texto=data.content?.[0]?.text||'Erro ao gerar atividade.';
+    iaUltimoTexto=texto;
+    if(output)output.innerHTML=formatarTextoIA(texto);
+    const tipo=document.getElementById('ia-tipo')?.value||'plano';
+    const setor=document.getElementById('ia-setor')?.value||'todos';
+    const entrada={id:'ia'+Date.now(),data:new Date().toLocaleDateString('pt-BR'),hora:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),tipo,setor,modo,texto,titulo:texto.split('\n')[0].replace(/[#*]/g,'').trim().slice(0,60)};
+    iaHistorico.unshift(entrada);
+    if(iaHistorico.length>20)iaHistorico.pop();
+    localStorage.setItem('lt4_ia_historico',JSON.stringify(iaHistorico));
+  }catch(e){
+    if(output)output.innerHTML='<p style="color:var(--r)">Erro ao conectar com a IA. Tente novamente.<br><small>'+e.message+'</small></p>';
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='<span>✨</span> Gerar com IA';}
+    if(typing)typing.style.display='none';
+  }
+}
+
+function formatarTextoIA(t){
+  return '<div>'+t
+    .replace(/^#### (.+)$/gm,'<h4 style="color:#a5b4fc;font-size:14px;margin:14px 0 6px;font-weight:600">$1</h4>')
+    .replace(/^### (.+)$/gm,'<h4 style="color:#a5b4fc;font-size:14px;margin:14px 0 6px;font-weight:600">$1</h4>')
+    .replace(/^## (.+)$/gm,'<h4 style="color:#a5b4fc;font-size:15px;margin:16px 0 8px;font-weight:700">$1</h4>')
+    .replace(/^# (.+)$/gm,'<h4 style="color:#a5b4fc;font-size:16px;margin:16px 0 8px;font-weight:700">$1</h4>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong style="color:var(--tx)">$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em style="color:#cbd5e1">$1</em>')
+    .replace(/^---$/gm,'<hr style="border:none;border-top:1px solid var(--bdr);margin:12px 0">')
+    .replace(/^[-•] (.+)$/gm,'<li style="margin:3px 0;color:#cbd5e1">$1</li>')
+    .replace(/^(\d+)\. (.+)$/gm,'<li style="margin:4px 0;color:#cbd5e1"><strong style="color:var(--a)">$1.</strong> $2</li>')
+    .replace(/(<li[^>]*>.*?<\/li>\n?)+/g,'<ul style="padding-left:20px;margin:6px 0">$&</ul>')
+    .replace(/\n\n+/g,'</p><p style="margin-bottom:8px;color:#cbd5e1">')
+    .replace(/\n/g,'<br>')+'</div>';
+}
+
+function salvarAtividade(){
+  if(!iaUltimoTexto){alert('Nenhuma atividade gerada ainda.');return;}
+  const tipo=document.getElementById('ia-tipo')?.value||'plano';
+  const setor=document.getElementById('ia-setor')?.value||'todos';
+  iaSalvas.unshift({id:'ia'+Date.now(),data:new Date().toLocaleDateString('pt-BR'),tipo,setor,texto:iaUltimoTexto,titulo:iaUltimoTexto.split('\n')[0].replace(/[#*]/g,'').trim().slice(0,60)});
+  localStorage.setItem('lt4_ia_atividades',JSON.stringify(iaSalvas));
+  alert('Atividade salva no Banco!');renderIaBanco();
+}
+function copiarAtividade(){
+  if(!iaUltimoTexto){alert('Nenhuma atividade gerada.');return;}
+  navigator.clipboard.writeText(iaUltimoTexto).then(()=>alert('Copiado!')).catch(()=>{const ta=document.createElement('textarea');ta.value=iaUltimoTexto;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('Copiado!');});
+}
+function renderIaHistorico(){
+  const el=document.getElementById('ia-historico-list');if(!el)return;
+  if(!iaHistorico.length){el.innerHTML='<div style="color:var(--mu);text-align:center;padding:20px;font-size:13px">Nenhuma atividade gerada ainda.</div>';return;}
+  el.innerHTML=iaHistorico.map(h=>`<div style="background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px;margin-bottom:8px;cursor:pointer" onclick="verAtividade('${h.id}','historico')"><div style="font-size:13px;font-weight:600;margin-bottom:3px">${h.titulo||'Atividade sem título'}</div><div style="font-size:11px;color:var(--mu)">${h.tipo} · ${h.setor} · ${h.data} às ${h.hora}</div></div>`).join('');
+}
+function renderIaBanco(){
+  const el=document.getElementById('ia-banco-list');if(!el)return;
+  if(!iaSalvas.length){el.innerHTML='<div style="color:var(--mu);font-size:13px">Nenhuma atividade salva. Gere e clique em "Salvar no Banco".</div>';return;}
+  el.innerHTML=iaSalvas.map(s=>`<div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rs);padding:11px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><div><div style="font-size:13px;font-weight:600">${s.titulo}</div><div style="font-size:11px;color:var(--mu)">${s.tipo} · ${s.setor} · ${s.data}</div></div><div style="display:flex;gap:6px"><button class="btn sec sm" onclick="verAtividade('${s.id}','banco')">Ver</button><button class="btn da sm" onclick="excluirAtividade('${s.id}')">🗑</button></div></div></div>`).join('');
+}
+function verAtividade(id,origem){
+  const lista=origem==='banco'?iaSalvas:iaHistorico;
+  const item=lista.find(x=>x.id===id);if(!item)return;
+  iaUltimoTexto=item.texto;
+  const output=document.getElementById('ia-output');
+  if(output)output.innerHTML=formatarTextoIA(item.texto);
+  iaTabSwitch('resultado',document.querySelector('.ia-tab'));
+}
+function excluirAtividade(id){
+  if(!confirm('Excluir esta atividade?'))return;
+  iaSalvas=iaSalvas.filter(x=>x.id!==id);
+  localStorage.setItem('lt4_ia_atividades',JSON.stringify(iaSalvas));
+  renderIaBanco();
 }
 
 // ══════════════════════════════════════════════════════════════
