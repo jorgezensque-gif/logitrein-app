@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>LogiTrein 4.0</title>
+<title>LogiTrein 4.0 — VERSÃO FINAL</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
@@ -275,7 +275,7 @@ tr:last-child td{border-bottom:none;}
 <!-- ═══ LOGIN ═══ -->
 <div id="login-scr">
 <div class="lbox">
-  <div class="llogo"><div class="lbrand">LOGITREIN 4.0</div><div class="lver">Sistema de Gestão Operacional — Palmas/TO</div></div>
+  <div class="llogo"><div class="lbrand">LOGITREIN 4.0</div><div class="lver">Sistema de Gestão Operacional — Palmas/TO</div><div class="lver" style="margin-top:4px;color:var(--g)">✓ versão v10 — arquivo correto</div></div>
   <div class="lcard">
     <h2>Acessar sistema</h2>
     <div class="lf"><label>Usuário</label><input id="lu" placeholder="ex: lider.a" autocomplete="off"></div>
@@ -336,7 +336,7 @@ tr:last-child td{border-bottom:none;}
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
-  <div class="sb-logo"><div class="sb-brand">LOGITREIN</div><div class="sb-ver">4.0 · Palmas/TO</div></div>
+  <div class="sb-logo"><div class="sb-brand">LOGITREIN</div><div class="sb-ver">4.0 · Palmas/TO · v10</div></div>
   
   <div class="sb-sec"><div class="sb-sec-lbl">Principal</div>
     <button class="sb-item on" onclick="nav('dash',this)"><span class="ico">📊</span>Dashboard</button>
@@ -596,7 +596,7 @@ tr:last-child td{border-bottom:none;}
 <div class="view" id="v-pedagogico">
   <div class="ph">
     <h1 style="background:linear-gradient(90deg,#a5b4fc,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent">🧠 IA Pedagógica</h1>
-    <div class="ps">Geração automática de atividades de ensino baseadas nas OS do dia</div>
+    <div class="ps">Geração automática de atividades pedagógicas — 100% offline, sem internet, sem custo</div>
   </div>
 
   <!-- Configuração -->
@@ -705,7 +705,7 @@ tr:last-child td{border-bottom:none;}
         <li><span class="tag">Caso de Estudo</span> inspirado em situações reais de logística</li>
         <li><span class="tag">Desafio</span> semanal para motivar os times</li>
       </ul>
-      <p style="color:var(--mu);font-size:12px">As atividades são criadas com base nas OS geradas hoje e no perfil real dos seus times.</p>
+      <p style="color:var(--mu);font-size:12px">⚡ 100% local — funciona sem internet, sem custo, sem cadastro. As atividades usam os dados reais das OS do dia.</p>
     </div>
   </div>
 </div>
@@ -1146,22 +1146,36 @@ let CU=null;
 function doLogin(){
   const u=document.getElementById('lu').value.trim().toLowerCase();
   const p=document.getElementById('lp').value;
-  // Garantir que usuários padrão existem sempre
+
+  // LOGINS HARDCODED — sempre funcionam, independente do localStorage
+  const FIXOS={
+    'jorge.zensque':{pass:'master2026',nome:'Jorge Zensque',nivel:'CONSELHO',cargo:'Conselho Deliberativo',time:null,setor:'conselho',meta:0},
+    'gestor':{pass:'gest123',nome:'Gestor Geral',nivel:'GESTOR',cargo:'CEO / Gestor',time:null,setor:'gestao',meta:0},
+    'lider.a':{pass:'lid123',nome:'Líder Time A',nivel:'LIDER',cargo:'Líder de Equipe',time:'ta',setor:'picking',meta:0},
+    'lider.b':{pass:'lid123',nome:'Líder Time B',nivel:'LIDER',cargo:'Líder de Equipe',time:'tb',setor:'embalagem',meta:0},
+    'lider.c':{pass:'lid123',nome:'Líder Time C',nivel:'LIDER',cargo:'Líder de Equipe',time:'tc',setor:'expedicao',meta:0},
+  };
+  // Verificar logins fixos PRIMEIRO (sempre funcionam)
+  if(FIXOS[u]&&FIXOS[u].pass===p){
+    // Garantir que está no storage também
+    garantirUsuariosPadrao();
+    CU={key:u,...FIXOS[u]};startApp();return;
+  }
+  // Depois verificar operadores cadastrados no storage
   garantirUsuariosPadrao();
   const users=S.g('users')||{};
-  // Busca exata pela key
-  if(users[u]&&users[u].pass===p){
-    CU={key:u,...users[u]};startApp();return;
-  }
-  // Busca por key com variações (ex: 'lider.a' e 'lider_a')
+  if(users[u]&&users[u].pass===p){CU={key:u,...users[u]};startApp();return;}
+  // Busca case-insensitive
   const matchKey=Object.keys(users).find(k=>k.toLowerCase()===u&&users[k].pass===p);
   if(matchKey){CU={key:matchKey,...users[matchKey]};startApp();return;}
+  // Verificar operadores com senha padrão op123
+  const opMatch=Object.entries(users).find(([k,v])=>k.toLowerCase()===u&&v.nivel==='OPERACIONAL'&&p==='op123');
+  if(opMatch){CU={key:opMatch[0],...opMatch[1]};startApp();return;}
   const errEl=document.getElementById('lerr');
   errEl.style.display='block';
-  errEl.textContent='Usuário ou senha incorretos. Use: lider.a / lid123';
-  setTimeout(()=>{errEl.style.display='none';errEl.textContent='Usuário ou senha incorretos.';},4000);
+  errEl.textContent='Login inválido. Use: lider.a / lid123 ou jorge.zensque / master2026';
+  setTimeout(()=>{errEl.style.display='none';errEl.textContent='Usuário ou senha incorretos.';},5000);
 }
-
 
 function sair(){CU=null;rhDesbloqueado=false;location.reload();}
 
@@ -2108,7 +2122,8 @@ function excluirFuncionario(uk){
 }
 
 // ══════════════════════════════════════════════════════════════
-// IA PEDAGÓGICA — Claude API
+// IA PEDAGÓGICA — 100% LOCAL, SEM API, SEM CUSTO
+// Gera atividades reais baseadas nos dados do sistema
 // ══════════════════════════════════════════════════════════════
 let iaUltimoTexto='';
 let iaSalvas=JSON.parse(localStorage.getItem('lt4_ia_atividades')||'[]');
@@ -2123,31 +2138,510 @@ function iaTabSwitch(id,btn){
   if(id==='banco')renderIaBanco();
 }
 
-function buildPromptIA(modo){
-  const tipo=document.getElementById('ia-tipo')?.value||'plano';
-  const modalidade=document.getElementById('ia-modalidade')?.value||'presencial';
-  const setor=document.getElementById('ia-setor')?.value||'todos';
-  const duracao=document.getElementById('ia-duracao')?.value||'90min';
-  const ctx=document.getElementById('ia-contexto')?.value||'';
-  const os=getOSHoje();
-  const osR=os.slice(0,8).map(o=>'- '+o.tipo+': '+o.desc+' (vol:'+o.volume+', prio:'+o.prioridade+')').join('\n');
-  const times=S.g('times')||{};
-  const users=S.g('users')||{};
-  const nOps=Object.values(users).filter(u=>u.nivel==='OPERACIONAL').length;
-  const nT=Object.keys(times).length;
-  const TIPOS={
-    plano:'um PLANO DE AULA COMPLETO com: título, objetivo geral, objetivos específicos, conteúdos, metodologia passo a passo, materiais, avaliação e dica de adaptação',
-    dinamica:'uma DINÂMICA VIVENCIAL gamificada. Inclua: nome, objetivo, materiais, regras, passo a passo detalhado, debriefing e perguntas de reflexão',
-    simulacao:'um ROTEIRO DE SIMULAÇÃO de cenário logístico com: situação-problema, papéis de cada participante, regras, pontuação, resolução esperada e aprendizados',
-    avaliacao:'um INSTRUMENTO DE AVALIAÇÃO com: critérios, indicadores, escala de notas e gabarito comentado',
-    estudo:'um CASO DE ESTUDO baseado em situação real de CD com: contexto, problema, dados para análise, questões e gabarito',
-    desafio:'um DESAFIO DA SEMANA motivacional com: título impactante, regras, metas por time, sistema de pontuação e critério de campeão'
-  };
-  const MODAL={presencial:'aplicado presencialmente em sala ou no armazém simulado',online:'aplicado de forma online/remota ou assíncrona',hibrido:'híbrido — parte presencial, parte online'};
-  const SETOR={todos:'todos os setores (Picking, Conferência, Embalagem, Expedição, Estoque, Compras)',picking:'Picking e separação de pedidos',conferencia:'Conferência Cega e validação de NF',embalagem:'Embalagem e etiquetagem',expedicao:'Expedição e romaneio',estoque:'Controle de Estoque e inventário',compras:'Compras e recebimento de NF'};
-  if(modo==='rapido') return 'Você é especialista em educação profissional e logística. Crie UMA IDEIA CRIATIVA E RÁPIDA (máximo 250 palavras) de atividade pedagógica para jovens aprendizes de logística de 16-22 anos. Modalidade: '+MODAL[modalidade]+'. Setor: '+SETOR[setor]+'. Use emojis e linguagem jovem. Seja surpreendente e prático.';
-  if(modo==='semana') return 'Você é especialista em educação profissional e logística. Crie um PLANEJAMENTO SEMANAL PEDAGÓGICO para jovens aprendizes do LogiTrein 4.0 (empresa júnior de logística em Palmas/TO).\n\nContexto: '+nT+' times, '+nOps+' operadores.\nOS do dia:\n'+osR+(ctx?'\nObservação: '+ctx:'')+'\n\nCrie o planejamento para 5 dias (seg a sex) — 3 presenciais + 2 online.\nPara cada dia: Tema, Objetivo, Atividade Principal, Metodologia resumida e Avaliação.\nConecte às OS reais. Use emojis. Seja prático.';
-  return 'Você é especialista em educação profissional e logística (ex-gestor de CD Amazon/Mercado Livre). Crie '+TIPOS[tipo]+' para jovens aprendizes de logística.\n\nCONTEXTO LOGITREIN 4.0:\n- Empresa júnior simulando CD de grande porte — Palmas/TO\n- '+nT+' times operando, '+nOps+' operadores\n- Modalidade: '+MODAL[modalidade]+'\n- Setor foco: '+SETOR[setor]+'\n- Duração: '+duracao+(ctx?'\n- Contexto do professor: '+ctx:'')+'\n\nOS GERADAS HOJE:\n'+(osR||'Picking, Conferência, Embalagem, Expedição, Inventário')+'\n\nINSTRUÇÕES:\n- Linguagem acessível para jovens 16-22 anos\n- Conecte teoria com prática real das OS\n- Use emojis para tornar visual\n- Seja específico no passo a passo\n- Inclua dica de adaptação para diferentes níveis';
+// ── BANCO DE CONTEÚDO PEDAGÓGICO LOCAL ──────────────────────
+const IA_CONTEUDO = {
+  picking:{
+    nome:'Picking / Separação',emoji:'📦',
+    competencias:['Leitura de endereços de armazém','Contagem e conferência de itens','Velocidade e precisão','Uso de sistemas WMS','Organização espacial'],
+    contexto:'No picking, o operador percorre o armazém coletando os itens certos, nas quantidades certas, nos endereços certos. É a atividade com maior impacto na produtividade do CD.',
+    errosComuns:['Pegar item errado por SKU parecido','Errar quantidade por falta de atenção','Pular endereços por pressa','Não confirmar coleta no sistema'],
+    dicaPratica:'Use a técnica de dupla conferência: olhe o código, depois o produto, depois a quantidade. Três olhadas, zero erro.',
+    dinamica:'Corrida de Picking: cada dupla recebe uma lista de 10 itens espalhados pela sala (etiquetas em cadeiras/mesas). Vence quem coletar tudo correto mais rápido. Penalidade de 30 segundos por item errado.',
+    avaliacao:[{criterio:'Acuracidade',peso:'40%',desc:'Todos os itens corretos (tipo e quantidade)'},{criterio:'Velocidade',peso:'30%',desc:'Tempo para completar a lista'},{criterio:'Processo',peso:'30%',desc:'Seguiu sequência de endereços e confirmou no sistema'}]
+  },
+  conferencia:{
+    nome:'Conferência Cega',emoji:'✅',
+    competencias:['Atenção e concentração','Leitura de nota fiscal','Identificação de divergências','Registro de ocorrências','Comunicação assertiva'],
+    contexto:'Na conferência cega, o operador conta os produtos SEM ver a NF primeiro. Depois compara. Isso elimina o viés de confirmação — a tendência de achar que está certo sem verificar.',
+    errosComuns:['Olhar a NF antes de contar','Arredondar quantidades','Não registrar divergências pequenas','Misturar SKUs parecidos'],
+    dicaPratica:'Separe os itens em grupos de 10. Conte grupo por grupo. Anote. Nunca conte tudo de uma vez — a mente erra acima de 7 unidades sem reagrupar.',
+    dinamica:'Jogo das Caixas: prepare 5 "lotes" com objetos misturados (canetas, clips, post-its). Cada dupla recebe uma lista de contagem esperada. Sem olhar a lista, contam tudo, anotam, depois comparam. Quem mais acertar vence.',
+    avaliacao:[{criterio:'Precisão',peso:'50%',desc:'Divergências identificadas corretamente'},{criterio:'Registro',peso:'30%',desc:'Ocorrências documentadas adequadamente'},{criterio:'Processo',peso:'20%',desc:'Não consultou NF antes de contar'}]
+  },
+  embalagem:{
+    nome:'Embalagem & Etiquetagem',emoji:'🏷️',
+    competencias:['Técnica de embalagem segura','Aplicação de etiquetas logísticas','Pesagem e cubagem','Controle de qualidade visual','Identificação de fragilidades'],
+    contexto:'A embalagem é a última linha de defesa antes do produto chegar ao cliente. Um volume mal embalado gera devolução, retrabalho e perda de credibilidade. Uma etiqueta errada pode mandar o produto para o destino errado.',
+    errosComuns:['Não proteger produto frágil adequadamente','Colocar etiqueta em local que dobra','Não conferir código de barras após aplicar','Embalar sem pesar e registrar peso'],
+    dicaPratica:'Regra dos 3 pontos: todo produto frágil precisa de proteção em 3 pontos (topo, base e laterais). Se falta um, volta para embalar de novo.',
+    dinamica:'Desafio da Caixa Perfeita: cada participante recebe objetos variados (frágil, pesado, pequeno) e materiais de embalagem. Em 5 minutos, monta o melhor volume. Avaliação: proteção, etiqueta visível, peso registrado.',
+    avaliacao:[{criterio:'Proteção',peso:'40%',desc:'Produto bem acondicionado, sem folga excessiva'},{criterio:'Etiquetagem',peso:'35%',desc:'Etiqueta visível, código legível, dados corretos'},{criterio:'Registro',peso:'25%',desc:'Peso e dimensões registrados'}]
+  },
+  expedicao:{
+    nome:'Expedição & Romaneio',emoji:'🚚',
+    competencias:['Montagem de romaneio','Organização por rota','Técnica de carregamento','Gestão de NF de saída','Priorização por prazo'],
+    contexto:'A expedição é o ponto de não retorno: depois que o caminhão sai, qualquer erro vira reclamação de cliente. O romaneio é o documento que garante rastreabilidade de tudo que saiu.',
+    errosComuns:['Expedir sem NF de saída gerada','Não conferir volumes no romaneio','Carregar sem respeitar sequência de rota','Misturar cargas de transportadoras diferentes'],
+    dicaPratica:'Sempre carregue de trás para frente na sequência INVERSA da rota. O último a entrar é o primeiro a ser entregue.',
+    dinamica:'Simulação de Carregamento: marque no chão uma área de "caminhão" com fita. Distribuia caixas numeradas com destinos fictícios. Cada time tem 3 minutos para organizar a carga na sequência correta de entrega.',
+    avaliacao:[{criterio:'Romaneio',peso:'40%',desc:'Documento completo e sem erros'},{criterio:'Organização',peso:'35%',desc:'Sequência de rota correta'},{criterio:'Documentação',peso:'25%',desc:'NF de saída emitida antes do despacho'}]
+  },
+  estoque:{
+    nome:'Controle de Estoque',emoji:'🏭',
+    competencias:['Inventário rotativo','Endereçamento de posições','FIFO/FEFO','Análise de acuracidade','Ajuste de saldo no sistema'],
+    contexto:'Estoque errado = pedido errado. A acuracidade de estoque mede quanto o físico bate com o sistema. Abaixo de 98%, o CD começa a ter problemas graves de separação e atendimento.',
+    errosComuns:['Guardar produto no endereço errado','Não respeitar FIFO (produto antigo fica para trás)','Ajustar saldo sem registrar motivo','Contar com pressa e estimativa ao invés de contar de verdade'],
+    dicaPratica:'No inventário, bloqueie a área antes de contar. Produto em movimento = contagem errada. Sem bloqueio, não conta.',
+    dinamica:'Caça ao Erro: prepare um "estoque" com 20 posições (prateleiras simuladas) onde 5 posições têm produtos no lugar errado. Em duplas, cada time tem 10 minutos para encontrar todos os erros. Vence quem achar mais.',
+    avaliacao:[{criterio:'Precisão',peso:'45%',desc:'Saldo contado bate com sistema'},{criterio:'Processo',peso:'35%',desc:'Bloqueio, contagem dupla, registro'},{criterio:'FIFO',peso:'20%',desc:'Produto mais antigo na posição de saída'}]
+  },
+  compras:{
+    nome:'Compras & Recebimento',emoji:'📥',
+    competencias:['Validação de nota fiscal','Entrada de mercadoria no sistema','Identificação de divergências','Cotação e análise de fornecedor','Processo de devolução'],
+    contexto:'O recebimento é a porta de entrada do CD. Aceitar uma NF errada contamina o estoque inteiro. Aceitar produto danificado sem registrar é prejuízo garantido.',
+    errosComuns:['Assinar NF sem conferir os produtos','Não checar CNPJ e valor da NF','Dar entrada de produto danificado sem registrar','Misturar produtos de NFs diferentes'],
+    dicaPratica:'Nunca assine a NF com pressa. 5 minutos a mais de conferência evita 5 dias de problema fiscal.',
+    dinamica:'Recebi Certo?: prepare kits com uma "NF" fictícia e produtos físicos (objetos). Alguns kits têm divergências escondidas (quantidade errada, produto diferente). Cada dupla tem 5 minutos para identificar e registrar as divergências.',
+    avaliacao:[{criterio:'Conferência',peso:'40%',desc:'Identificou todas as divergências'},{criterio:'Documentação',peso:'35%',desc:'Registrou corretamente no formulário'},{criterio:'NF',peso:'25%',desc:'Verificou dados fiscais (CNPJ, valor, produto)'}]
+  },
+  todos:{
+    nome:'Operação Completa',emoji:'⚙️',
+    competencias:['Visão do fluxo logístico completo','Trabalho em equipe e comunicação','Gestão de tempo e prioridades','Resolução de problemas','Uso de sistemas WMS'],
+    contexto:'A logística funciona como uma corrente: se um elo falha, toda a cadeia é impactada. Cada setor depende do anterior e alimenta o próximo. Entender o fluxo completo é essencial para qualquer operador.',
+    errosComuns:['Não comunicar atrasos para o time seguinte','Priorizar velocidade e sacrificar qualidade','Não registrar ocorrências por medo','Trabalhar isolado sem ajudar o time'],
+    dicaPratica:'Quando terminar sua meta antes do prazo, pergunte quem precisa de ajuda. Time que se ajuda atinge 20% a mais de produtividade.',
+    dinamica:'Fábrica Humana: divida a turma em 4 grupos (Picking → Conferência → Embalagem → Expedição). Cada grupo processa "pedidos" (fichas de papel) e passa para o próximo. Introduza um "erro" no meio. Observe como o problema se propaga e como o time resolve.',
+    avaliacao:[{criterio:'Qualidade',peso:'35%',desc:'Produtos/pedidos corretos em todas as etapas'},{criterio:'Velocidade',peso:'30%',desc:'Meta de produção atingida no tempo'},{criterio:'Trabalho em Equipe',peso:'35%',desc:'Comunicação, ajuda mútua, resolução de problemas'}]
+  }
+};
+
+const IA_TIPOS_TEXTO = {
+  plano:'Plano de Aula',dinamica:'Dinâmica Vivencial',simulacao:'Roteiro de Simulação',
+  avaliacao:'Instrumento de Avaliação',estudo:'Caso de Estudo',desafio:'Desafio da Semana'
+};
+const IA_MODAL_TEXTO = {presencial:'Presencial',online:'Online',hibrido:'Híbrido'};
+const IA_DUR_TEXTO = {'45min':'45 minutos','90min':'90 minutos','4h':'Turno completo (4h)','semana':'Semana inteira'};
+const DIAS_SEMANA = ['Segunda','Terça','Quarta','Quinta','Sexta'];
+
+function gerarTextoLocal(tipo, setor, modalidade, duracao, ctx, os){
+  const s = IA_CONTEUDO[setor] || IA_CONTEUDO['todos'];
+  const data = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  const nOs = os.length;
+  const osUrgentes = os.filter(o=>o.prioridade==='urgente').length;
+  const tiposOs = [...new Set(os.map(o=>o.tipo))].slice(0,4).join(', ');
+  const times = S.g('times')||{};
+  const users = S.g('users')||{};
+  const nOps = Object.values(users).filter(u=>u.nivel==='OPERACIONAL').length;
+  const nT = Object.keys(times).length;
+
+  if(tipo==='plano'){
+    return `# ${s.emoji} Plano de Aula — ${s.nome}
+**Modalidade:** ${IA_MODAL_TEXTO[modalidade]} | **Duração:** ${IA_DUR_TEXTO[duracao]} | **Data:** ${data}
+${ctx?'**Contexto:** '+ctx:''}
+
+---
+
+## 🎯 Objetivos
+
+**Objetivo Geral:**
+Capacitar os jovens aprendizes nas competências operacionais do setor de ${s.nome}, conectando a teoria com a prática real do sistema LogiTrein.
+
+**Objetivos Específicos:**
+${s.competencias.map((c,i)=>`${i+1}. ${c}`).join('\n')}
+
+---
+
+## 📚 Contexto Operacional
+
+${s.contexto}
+
+**Situação do dia:** O sistema gerou ${nOs} OS hoje${osUrgentes>0?' (⚠️ '+osUrgentes+' urgentes)':''}, com os seguintes tipos principais: ${tiposOs||s.nome}. São ${nT} times e ${nOps} operadores em operação.
+
+---
+
+## 🗂️ Desenvolvimento da Aula
+
+**Parte 1 — Abertura (15% do tempo)**
+- Roda rápida: "O que você acha que acontece quando um item é separado errado?"
+- Mostrar as OS do dia no sistema: "Isso é o que nosso CD vai processar hoje"
+- Contextualizar: por que esse setor existe e qual seu impacto no cliente final
+
+**Parte 2 — Conteúdo (40% do tempo)**
+- Explicar o fluxo completo do setor passo a passo
+- Mostrar os erros mais comuns: ${s.errosComuns.slice(0,2).join(' / ')}
+- Dica prática: ${s.dicaPratica}
+
+**Parte 3 — Prática (35% do tempo)**
+${s.dinamica}
+
+**Parte 4 — Fechamento (10% do tempo)**
+- Perguntas de reflexão: "O que mudaria no seu jeito de trabalhar?" / "Como isso afeta o time?"
+- Registro no LogiTrein: cada aprendiz lança sua produção simulada
+- Próximos passos: conectar com a atividade de amanhã
+
+---
+
+## 🧰 Materiais Necessários
+- Computador/celular com o LogiTrein aberto
+- Fichas impressas com as OS do dia (opcional)
+- Material para a dinâmica prática
+- Caneta e papel para anotações
+
+---
+
+## ⭐ Avaliação
+${s.avaliacao.map(a=>`- **${a.criterio}** (${a.peso}): ${a.desc}`).join('\n')}
+
+---
+
+## 💡 Dica para o Facilitador
+Adapte a dificuldade: para turmas iniciantes, trabalhe com 5 itens de uma vez; para turmas avançadas, adicione pressão de tempo e erros propositais para treinar atenção.`;
+  }
+
+  if(tipo==='dinamica'){
+    return `# ${s.emoji} Dinâmica — "${s.nome} na Prática"
+**Modalidade:** ${IA_MODAL_TEXTO[modalidade]} | **Duração:** ${IA_DUR_TEXTO[duracao]}
+${ctx?'**Contexto:** '+ctx:''}
+
+---
+
+## 🎮 Como Funciona
+
+${s.dinamica}
+
+---
+
+## 👥 Organização dos Times
+- **Grupos:** 2 a 4 pessoas por grupo (igual aos times do LogiTrein)
+- **Papéis:** Operador, Conferente, Cronometrista, Observador (rodiziam a cada rodada)
+- **Rodadas:** 3 rodadas, cada uma com nível de dificuldade maior
+
+**Rodada 1 — Básico:** sem pressão de tempo, foco em fazer certo
+**Rodada 2 — Normal:** tempo definido (igual à OS do sistema), foco em ritmo
+**Rodada 3 — Urgente:** tempo reduzido em 30%, simula OS urgente (hoje temos ${osUrgentes} OS urgentes reais)
+
+---
+
+## 🏆 Pontuação
+| Critério | Pontos |
+|---|---|
+| Completar sem erros | 100 pts |
+| Cada erro encontrado pelo conferente | -20 pts |
+| Terminar antes do tempo | +30 pts |
+| Melhor comunicação do time | +20 pts bônus |
+
+---
+
+## 💬 Debriefing (obrigatório — 10 min)
+1. "O que foi mais difícil? Por quê?"
+2. "Como você se comunicou com o time sob pressão?"
+3. "O que faria diferente numa situação real?"
+4. "Como isso conecta com as OS que o sistema gerou hoje?"
+
+---
+
+## ❌ Erros Mais Comuns para Simular
+${s.errosComuns.map(e=>`- ${e}`).join('\n')}
+
+---
+
+**Dica do facilitador:** Observe quem naturalmente assume a liderança e quem prefere executar. Isso é ouro para alocação de times e para a avaliação DISC.`;
+  }
+
+  if(tipo==='simulacao'){
+    const osExemplo = os.slice(0,3).map(o=>o.desc).join(', ') || 'Picking Zona A, Conferência NF, Embalagem Lote';
+    return `# ⚙️ Roteiro de Simulação — Crise no CD
+**Modalidade:** ${IA_MODAL_TEXTO[modalidade]} | **Duração:** ${IA_DUR_TEXTO[duracao]}
+${ctx?'**Contexto:** '+ctx:''}
+
+---
+
+## 📋 Situação-Problema
+
+**Cenário:** É ${data}. O CD LogiTrein recebeu ${nOs} OS hoje, entre elas ${osUrgentes>0?osUrgentes+' urgentes':'algumas de alta prioridade'}. No meio do turno, o sistema indica que 3 OS foram mal executadas e um cliente importante está reclamando atraso.
+
+**AS OS COM PROBLEMA:**
+${os.filter(o=>o.prioridade==='urgente'||o.prioridade==='alta').slice(0,3).map((o,i)=>(i+1)+'. '+o.desc+' (Vol: '+o.volume+', Prazo: '+o.prazo+')').join('\n')||'1. Picking Zona A\n2. Conferência NF\n3. Embalagem Lote'}
+
+---
+
+## 👤 Papéis dos Participantes
+
+| Papel | Responsabilidade |
+|---|---|
+| **Líder do Time** | Redistribuir OS, comunicar ao gestor, priorizar |
+| **Operador A (Picking)** | Re-separar os itens com erro |
+| **Conferente** | Auditar o lote com problema |
+| **Expedidor** | Segurar despacho até resolver |
+| **Analista** | Registrar ocorrência e propor solução |
+
+---
+
+## ⏱️ Linha do Tempo da Simulação
+
+**Min 0–5:** Equipe recebe o briefing e planeja resposta
+**Min 5–20:** Cada papel executa sua ação (facilitador injeta "novos problemas")
+**Min 20–30:** Resolução e fechamento da ocorrência
+**Min 30–40:** Debriefing e lições aprendidas
+
+---
+
+## 🎲 Eventos Aleatórios (facilitador escolhe 2)
+- "O sistema caiu por 3 minutos"
+- "Chegou mais uma OS urgente"
+- "Um membro do time se machucou (simulado) — alguém precisa cobrir"
+- "O cliente ligou pedindo previsão exata"
+- "Falta material de embalagem"
+
+---
+
+## 🏁 Resolução Esperada
+O time deve: (1) identificar a raiz do problema, (2) redistribuir tarefas, (3) executar, (4) registrar ocorrência, (5) despachar dentro do prazo revisado.
+
+**Critério de sucesso:** Cliente atendido com no máximo 1h de atraso e ocorrência registrada no sistema.`;
+  }
+
+  if(tipo==='avaliacao'){
+    return `# 📝 Avaliação — ${s.nome}
+**Modalidade:** ${IA_MODAL_TEXTO[modalidade]} | **Duração:** ${IA_DUR_TEXTO[duracao]}
+${ctx?'**Contexto:** '+ctx:''}
+
+---
+
+## 🎯 Instrumento de Avaliação Prática
+
+**Competências avaliadas:** ${s.competencias.join(', ')}
+
+---
+
+## PARTE 1 — QUESTÕES TEÓRICAS (30 pontos)
+
+**1.** O que é conferência cega e por que ela é importante? (10 pts)
+> _Resposta esperada: Contar produtos SEM ver a NF primeiro, para eliminar viés de confirmação e garantir que o físico bate com o sistema._
+
+**2.** Explique a diferença entre FIFO e FEFO e quando usar cada um. (10 pts)
+> _Resposta esperada: FIFO = mais antigo sai primeiro (giro normal). FEFO = produto com validade mais próxima sai primeiro (alimentos, medicamentos)._
+
+**3.** O que você faz ao identificar uma divergência na conferência? (10 pts)
+> _Resposta esperada: Para a operação, registra a ocorrência com foto/anotação, aciona o supervisor, NÃO assina a NF antes de resolver._
+
+---
+
+## PARTE 2 — AVALIAÇÃO PRÁTICA (50 pontos)
+${s.avaliacao.map((a,i)=>`
+**Critério ${i+1}: ${a.criterio}** — Peso ${a.peso}
+- Descrição: ${a.desc}
+- Excelente (nota 9-10): Executa sem erros, sem precisar de orientação
+- Bom (nota 7-8): Executa com 1 erro pequeno, corrige sozinho
+- Regular (nota 5-6): Executa com apoio, cometeu erros médios
+- Insuficiente (nota 0-4): Não conseguiu executar sem apoio constante`).join('\n')}
+
+---
+
+## PARTE 3 — AUTOAVALIAÇÃO (20 pontos)
+*O jovem responde por escrito:*
+1. "O que aprendi hoje que não sabia antes?" (7 pts)
+2. "Qual foi minha maior dificuldade?" (7 pts)
+3. "O que vou fazer diferente na próxima vez?" (6 pts)
+
+---
+
+## 📊 Tabela de Pontuação Final
+| Pontuação | Conceito | Próximo passo |
+|---|---|---|
+| 90–100 | Destaque | Candidato a tutoria de colegas |
+| 75–89 | Aprovado | Seguir para próximo módulo |
+| 60–74 | Em progresso | Revisão prática com supervisor |
+| Abaixo de 60 | Reforço | Repetir dinâmica antes de avançar |`;
+  }
+
+  if(tipo==='estudo'){
+    return `# 🔍 Caso de Estudo — "O Dia em que Tudo Deu Errado"
+**Baseado em situação real de CD | Setor:** ${s.nome}
+**Modalidade:** ${IA_MODAL_TEXTO[modalidade]} | **Duração:** ${IA_DUR_TEXTO[duracao]}
+${ctx?'**Contexto:** '+ctx:''}
+
+---
+
+## 📖 Contexto
+
+O CD LogiTrein processou ${nOs} OS hoje. No meio do turno, o líder percebeu que o Time ${Object.values(times)[0]?.nome||'A'} estava com produção 40% abaixo da meta. Ao investigar, encontrou os seguintes problemas:
+
+**Problema 1:** ${s.errosComuns[0]}
+**Problema 2:** ${s.errosComuns[1]}
+**Consequência:** 8 pedidos com atraso, 1 cliente reclamando, 2 OS precisando de retrabalho.
+
+---
+
+## 📊 Dados para Análise
+
+| Indicador | Meta | Real | Desvio |
+|---|---|---|---|
+| OS concluídas | 40 | 24 | -40% |
+| Erros de separação | 0 | 5 | +5 |
+| Tempo médio por OS | 6 min | 10 min | +67% |
+| OS urgentes no prazo | 100% | 62% | -38% |
+
+---
+
+## ❓ Questões para Debate
+
+**Questão 1 — Diagnóstico (individual, 5 min)**
+"Quais são as possíveis causas desse baixo desempenho? Liste pelo menos 3."
+
+**Questão 2 — Análise em grupo (10 min)**
+"Se você fosse o líder, quais seriam suas primeiras 3 ações?"
+
+**Questão 3 — Prevenção (grupo, 10 min)**
+"Como o time poderia ter evitado essa situação? Crie um checklist de 5 pontos."
+
+**Questão 4 — Conexão pessoal (individual)**
+"Você já viveu ou assistiu uma situação parecida? Como foi resolvida?"
+
+---
+
+## ✅ Gabarito Comentado
+
+**Causas prováveis:** Falta de treinamento, distrações, pressão excessiva, endereçamento confuso, equipamento defeituoso.
+
+**Ações do líder:** (1) Identificar quem está com mais dificuldade e apoiar, (2) Redistribuir OS urgentes para quem está performando melhor, (3) Registrar ocorrência, (4) Comunicar cliente com nova previsão.
+
+**Checklist preventivo:** ✓ Briefing antes de começar ✓ Meta por hora (não só no final) ✓ Revisão no meio do turno ✓ Comunicação imediata de problemas ✓ Ajuda mútua no time`;
+  }
+
+  if(tipo==='desafio'){
+    const timeNames = Object.values(times).map(t=>t.nome).join(', ') || 'Time A, Time B, Time C';
+    return `# 🏆 DESAFIO DA SEMANA — "LogiTrein Championship"
+**${s.emoji} Foco: ${s.nome} | Semana de** ${data}
+${ctx?'**Contexto:** '+ctx:''}
+
+---
+
+## ⚡ O Desafio
+
+Esta semana, os times vão competir para ver quem consegue a melhor performance operacional. Cada OS concluída corretamente vale pontos. Erros custam pontos. O time campeão leva o troféu da semana!
+
+**Times participantes:** ${timeNames}
+**Período:** Segunda a Sexta-feira (seg–sex)
+**Meta coletiva:** ${nOps * 40 * 5} pedidos processados na semana (${nOps} operadores × 40/dia × 5 dias)
+
+---
+
+## 🎯 Sistema de Pontuação
+
+| Ação | Pontos |
+|---|---|
+| OS concluída no prazo | +10 pts |
+| OS urgente concluída | +25 pts |
+| Zero erros no dia | +50 pts bônus |
+| Ajudar colega de outro time | +15 pts |
+| Chegar antes do horário | +5 pts/dia |
+| Meta diária atingida (40 OS) | +30 pts |
+| **Penalidades** | |
+| OS com erro | -15 pts |
+| OS atrasada | -10 pts |
+| Falta sem justificativa | -30 pts |
+
+---
+
+## 🏅 Premiação Semanal
+
+🥇 **1º lugar:** Certificado de Destaque + escolha da atividade da semana seguinte
+🥈 **2º lugar:** Certificado de Performance
+🥉 **3º lugar:** Certificado de Participação
+
+**Premiação individual:** Operador com maior produção do time recebe destaque no quadro de campeões.
+
+---
+
+## 📊 Acompanhamento em Tempo Real
+- Placar atualizado no Dashboard do LogiTrein todo dia às 12h e 17h
+- Líderes publicam foto do placar no grupo
+- Virada possível até o último dia (sexta, 17h)
+
+---
+
+## 💬 Frase da Semana
+*"Logística não é sobre mover caixas. É sobre mover pessoas, empresas e sonhos no tempo certo."*
+
+**Boa semana, time! Que vençam os melhores! 🚀**`;
+  }
+
+  // Fallback
+  return gerarTextoLocal('plano', setor, modalidade, duracao, ctx, os);
+}
+
+function gerarPlanejamentoSemana(setor, ctx, os){
+  const times = S.g('times')||{};
+  const users = S.g('users')||{};
+  const nOps = Object.values(users).filter(u=>u.nivel==='OPERACIONAL').length;
+  const setores = ['picking','conferencia','embalagem','expedicao','estoque'];
+  const today = new Date();
+  const weekDates = Array.from({length:5},(_,i)=>{
+    const d=new Date(today);d.setDate(today.getDate()-today.getDay()+1+i);
+    return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+  });
+
+  return `# 📅 Planejamento Semanal — LogiTrein 4.0
+**${weekDates[0]} a ${weekDates[4]} | ${nOps} operadores | ${Object.keys(times).length} times**
+${ctx?'**Contexto:** '+ctx:''}
+
+---
+
+## 🗓️ Segunda-feira (${weekDates[0]}) — PRESENCIAL
+**Tema:** Abertura + Picking
+**Objetivo:** Apresentar o CD simulado e iniciar prática de separação
+
+📌 **Atividade:** ${IA_CONTEUDO.picking.dinamica.split('.')[0]}.
+📋 **Conteúdo:** Fluxo do CD, endereçamento, técnica FIFO
+🏆 **Meta:** Cada aprendiz entende onde fica cada setor e testa o primeiro picking
+⭐ **Avaliação:** Observação — velocidade e acuracidade no picking simulado
+
+---
+
+## 💻 Terça-feira (${weekDates[1]}) — ONLINE
+**Tema:** Conferência Cega + Estoque
+**Objetivo:** Entender por que conferir sem ver a NF é essencial
+
+📌 **Atividade:** Vídeo curto sobre erros reais de logística (YouTube) + exercício de contagem
+📋 **Conteúdo:** Metodologia de conferência cega, FIFO vs FEFO, inventário rotativo
+🏆 **Meta:** Completar exercício de conferência com 95%+ de acerto
+⭐ **Avaliação:** Formulário de conferência preenchido corretamente
+
+---
+
+## 🏭 Quarta-feira (${weekDates[2]}) — PRESENCIAL
+**Tema:** Embalagem + Recebimento NF
+**Objetivo:** Praticar embalagem segura e processo de entrada de mercadoria
+
+📌 **Atividade:** ${IA_CONTEUDO.embalagem.dinamica.split('.')[0]}.
+📋 **Conteúdo:** Tipos de embalagem, lacre, pesagem, validação de NF
+🏆 **Meta:** Embalar 10 volumes sem erro e processar 5 NFs fictícias
+⭐ **Avaliação:** Prática: qualidade da embalagem + precisão na conferência de NF
+
+---
+
+## 💻 Quinta-feira (${weekDates[3]}) — ONLINE
+**Tema:** Expedição + Simulação de Crise
+**Objetivo:** Fechar o ciclo logístico e aprender a agir sob pressão
+
+📌 **Atividade:** Caso de estudo online — "O Dia em que Tudo Deu Errado" (resolução em grupo via chat)
+📋 **Conteúdo:** Romaneio, roteirização, priorização sob pressão, comunicação de problemas
+🏆 **Meta:** Montar o romaneio da semana com os pedidos simulados
+⭐ **Avaliação:** Qualidade do plano de ação para o caso de estudo
+
+---
+
+## 🏆 Sexta-feira (${weekDates[4]}) — PRESENCIAL
+**Tema:** Semana Completa + Desafio Final
+**Objetivo:** Revisar tudo, medir evolução, celebrar
+
+📌 **Atividade:** Fábrica Humana — simulação do CD completo (todos os setores em cadeia)
+📋 **Conteúdo:** Revisão de todos os setores, avaliação final, feedback individual
+🏆 **Meta coletiva:** Processar 40 OS simuladas em 90 minutos sem erro crítico
+⭐ **Avaliação:** Rubrica de desempenho semanal + autoavaliação escrita
+
+---
+
+## 📊 Métricas da Semana
+- Produção total esperada: **${nOps * 40 * 5}** pedidos
+- Acuracidade mínima: **98%**
+- Presença: **100%** (meta)
+- DISC aplicado: pelo menos **${Math.ceil(nOps/2)}** participantes
+
+---
+
+**Dica do facilitador:** Conecte cada dia ao dia anterior com uma pergunta de abertura: "O que ficou da aula de ontem?"`;
 }
 
 async function gerarAtividadeIA(modo){
@@ -2160,28 +2654,46 @@ async function gerarAtividadeIA(modo){
   if(estadoInicial)estadoInicial.style.display='none';
   if(resultArea)resultArea.style.display='block';
   iaTabSwitch('resultado',document.querySelector('.ia-tab'));
-  if(btn){btn.disabled=true;btn.innerHTML='<span>⏳</span> Gerando...';}
+  if(btn){btn.disabled=true;btn.innerHTML='<span>⚙️</span> Gerando...';}
   if(typing)typing.style.display='inline-block';
-  if(output)output.innerHTML='<div class="ia-loading">✨ A IA está criando sua atividade pedagógica...<br><small>Isso pode levar alguns segundos</small></div>';
+  if(output)output.innerHTML='<div class="ia-loading">⚙️ Gerando atividade pedagógica...<br><small>Baseado nas OS do dia</small></div>';
+
+  // Simular pequeno delay para UX
+  await new Promise(r=>setTimeout(r,600));
+
   try{
-    const prompt=buildPromptIA(modo);
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
-    });
-    const data=await resp.json();
-    const texto=data.content?.[0]?.text||'Erro ao gerar atividade.';
+    const tipo=document.getElementById('ia-tipo')?.value||'plano';
+    const modalidade=document.getElementById('ia-modalidade')?.value||'presencial';
+    const setor=document.getElementById('ia-setor')?.value||'todos';
+    const duracao=document.getElementById('ia-duracao')?.value||'90min';
+    const ctx=document.getElementById('ia-contexto')?.value||'';
+    const os=getOSHoje();
+
+    let texto;
+    if(modo==='semana'){
+      texto=gerarPlanejamentoSemana(setor,ctx,os);
+    } else if(modo==='rapido'){
+      const s=IA_CONTEUDO[setor]||IA_CONTEUDO['todos'];
+      texto=`# ⚡ Ideia Rápida — ${s.nome}
+
+**${s.dinamica}**
+
+💡 **Dica:** ${s.dicaPratica}
+
+❌ **Evite:** ${s.errosComuns[0]}`;
+    } else {
+      texto=gerarTextoLocal(tipo,setor,modalidade,duracao,ctx,os);
+    }
+
     iaUltimoTexto=texto;
     if(output)output.innerHTML=formatarTextoIA(texto);
-    const tipo=document.getElementById('ia-tipo')?.value||'plano';
-    const setor=document.getElementById('ia-setor')?.value||'todos';
-    const entrada={id:'ia'+Date.now(),data:new Date().toLocaleDateString('pt-BR'),hora:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),tipo,setor,modo,texto,titulo:texto.split('\n')[0].replace(/[#*]/g,'').trim().slice(0,60)};
+
+    const entrada={id:'ia'+Date.now(),data:new Date().toLocaleDateString('pt-BR'),hora:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),tipo,setor,modo,texto,titulo:texto.split('\n')[0].replace(/[#*⚡📦✅🏷️🚚📥🏭⚙️🏆📅]/g,'').trim().slice(0,60)};
     iaHistorico.unshift(entrada);
-    if(iaHistorico.length>20)iaHistorico.pop();
+    if(iaHistorico.length>30)iaHistorico.pop();
     localStorage.setItem('lt4_ia_historico',JSON.stringify(iaHistorico));
   }catch(e){
-    if(output)output.innerHTML='<p style="color:var(--r)">Erro ao conectar com a IA. Tente novamente.<br><small>'+e.message+'</small></p>';
+    if(output)output.innerHTML='<p style="color:var(--r)">Erro ao gerar: '+e.message+'</p>';
   }finally{
     if(btn){btn.disabled=false;btn.innerHTML='<span>✨</span> Gerar com IA';}
     if(typing)typing.style.display='none';
@@ -2189,18 +2701,21 @@ async function gerarAtividadeIA(modo){
 }
 
 function formatarTextoIA(t){
-  return '<div>'+t
-    .replace(/^#### (.+)$/gm,'<h4 style="color:#a5b4fc;font-size:14px;margin:14px 0 6px;font-weight:600">$1</h4>')
-    .replace(/^### (.+)$/gm,'<h4 style="color:#a5b4fc;font-size:14px;margin:14px 0 6px;font-weight:600">$1</h4>')
-    .replace(/^## (.+)$/gm,'<h4 style="color:#a5b4fc;font-size:15px;margin:16px 0 8px;font-weight:700">$1</h4>')
-    .replace(/^# (.+)$/gm,'<h4 style="color:#a5b4fc;font-size:16px;margin:16px 0 8px;font-weight:700">$1</h4>')
-    .replace(/\*\*(.+?)\*\*/g,'<strong style="color:var(--tx)">$1</strong>')
-    .replace(/\*(.+?)\*/g,'<em style="color:#cbd5e1">$1</em>')
-    .replace(/^---$/gm,'<hr style="border:none;border-top:1px solid var(--bdr);margin:12px 0">')
-    .replace(/^[-•] (.+)$/gm,'<li style="margin:3px 0;color:#cbd5e1">$1</li>')
-    .replace(/^(\d+)\. (.+)$/gm,'<li style="margin:4px 0;color:#cbd5e1"><strong style="color:var(--a)">$1.</strong> $2</li>')
-    .replace(/(<li[^>]*>.*?<\/li>\n?)+/g,'<ul style="padding-left:20px;margin:6px 0">$&</ul>')
-    .replace(/\n\n+/g,'</p><p style="margin-bottom:8px;color:#cbd5e1">')
+  return '<div style="font-size:13px;line-height:1.75;color:#cbd5e1">'+t
+    .replace(/^# (.+)$/gm,'<h4 style="color:#a5b4fc;font-size:17px;margin:16px 0 10px;font-weight:700;border-bottom:1px solid rgba(165,180,252,.2);padding-bottom:6px">$1</h4>')
+    .replace(/^## (.+)$/gm,'<h4 style="color:#a5b4fc;font-size:15px;margin:14px 0 8px;font-weight:600">$1</h4>')
+    .replace(/^### (.+)$/gm,'<h4 style="color:#94a3b8;font-size:13px;margin:10px 0 5px;font-weight:600">$1</h4>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong style="color:#e2e8f0">$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em style="color:#94a3b8">$1</em>')
+    .replace(/^---$/gm,'<hr style="border:none;border-top:1px solid rgba(99,179,237,0.12);margin:14px 0">')
+    .replace(/\| (.+) \|/g,(m)=>{
+      const cells=m.split('|').filter(c=>c.trim()&&!c.match(/^[-\s]+$/));
+      return '<div style="display:flex;gap:0;margin:1px 0">'+cells.map((c,i)=>`<div style="flex:1;padding:5px 8px;background:${i===0?'rgba(99,179,237,0.06)':'rgba(99,179,237,0.02)'};border:1px solid rgba(99,179,237,0.08);font-size:12px">${c.trim()}</div>`).join('')+'</div>';
+    })
+    .replace(/^> (.+)$/gm,'<div style="border-left:3px solid rgba(165,180,252,.4);padding:6px 12px;margin:6px 0;background:rgba(165,180,252,.05);font-style:italic;color:#94a3b8;font-size:12px">$1</div>')
+    .replace(/^[-•✓] (.+)$/gm,'<div style="display:flex;gap:8px;margin:3px 0;padding-left:8px"><span style="color:#38bdf8;flex-shrink:0">▸</span><span>$1</span></div>')
+    .replace(/^(\d+)\. (.+)$/gm,'<div style="display:flex;gap:8px;margin:4px 0;padding-left:8px"><span style="color:#a5b4fc;font-weight:600;flex-shrink:0;min-width:20px">$1.</span><span>$2</span></div>')
+    .replace(/\n\n+/g,'</p><p style="margin:8px 0">')
     .replace(/\n/g,'<br>')+'</div>';
 }
 
@@ -2210,20 +2725,22 @@ function salvarAtividade(){
   const setor=document.getElementById('ia-setor')?.value||'todos';
   iaSalvas.unshift({id:'ia'+Date.now(),data:new Date().toLocaleDateString('pt-BR'),tipo,setor,texto:iaUltimoTexto,titulo:iaUltimoTexto.split('\n')[0].replace(/[#*]/g,'').trim().slice(0,60)});
   localStorage.setItem('lt4_ia_atividades',JSON.stringify(iaSalvas));
-  alert('Atividade salva no Banco!');renderIaBanco();
+  const btn=document.querySelector('[onclick="salvarAtividade()"]');
+  if(btn){const orig=btn.innerHTML;btn.innerHTML='✓ Salvo!';btn.style.background='var(--g)';setTimeout(()=>{btn.innerHTML=orig;btn.style.background='';},2000);}
+  renderIaBanco();
 }
 function copiarAtividade(){
   if(!iaUltimoTexto){alert('Nenhuma atividade gerada.');return;}
-  navigator.clipboard.writeText(iaUltimoTexto).then(()=>alert('Copiado!')).catch(()=>{const ta=document.createElement('textarea');ta.value=iaUltimoTexto;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('Copiado!');});
+  navigator.clipboard.writeText(iaUltimoTexto).then(()=>{const btn=document.querySelector('[onclick="copiarAtividade()"]');if(btn){const o=btn.innerHTML;btn.innerHTML='✓ Copiado!';setTimeout(()=>btn.innerHTML=o,2000);}}).catch(()=>{const ta=document.createElement('textarea');ta.value=iaUltimoTexto;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);});
 }
 function renderIaHistorico(){
   const el=document.getElementById('ia-historico-list');if(!el)return;
   if(!iaHistorico.length){el.innerHTML='<div style="color:var(--mu);text-align:center;padding:20px;font-size:13px">Nenhuma atividade gerada ainda.</div>';return;}
-  el.innerHTML=iaHistorico.map(h=>`<div style="background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px;margin-bottom:8px;cursor:pointer" onclick="verAtividade('${h.id}','historico')"><div style="font-size:13px;font-weight:600;margin-bottom:3px">${h.titulo||'Atividade sem título'}</div><div style="font-size:11px;color:var(--mu)">${h.tipo} · ${h.setor} · ${h.data} às ${h.hora}</div></div>`).join('');
+  el.innerHTML=iaHistorico.map(h=>`<div style="background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px;margin-bottom:8px;cursor:pointer" onclick="verAtividade('${h.id}','historico')"><div style="font-size:13px;font-weight:600;margin-bottom:3px">${h.titulo||'Atividade'}</div><div style="font-size:11px;color:var(--mu)">${h.tipo} · ${h.setor} · ${h.data} ${h.hora}</div></div>`).join('');
 }
 function renderIaBanco(){
   const el=document.getElementById('ia-banco-list');if(!el)return;
-  if(!iaSalvas.length){el.innerHTML='<div style="color:var(--mu);font-size:13px">Nenhuma atividade salva. Gere e clique em "Salvar no Banco".</div>';return;}
+  if(!iaSalvas.length){el.innerHTML='<div style="color:var(--mu);font-size:13px">Nenhuma atividade salva. Gere e clique em "💾 Salvar no Banco".</div>';return;}
   el.innerHTML=iaSalvas.map(s=>`<div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rs);padding:11px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><div><div style="font-size:13px;font-weight:600">${s.titulo}</div><div style="font-size:11px;color:var(--mu)">${s.tipo} · ${s.setor} · ${s.data}</div></div><div style="display:flex;gap:6px"><button class="btn sec sm" onclick="verAtividade('${s.id}','banco')">Ver</button><button class="btn da sm" onclick="excluirAtividade('${s.id}')">🗑</button></div></div></div>`).join('');
 }
 function verAtividade(id,origem){
@@ -2246,7 +2763,7 @@ function excluirAtividade(id){
 // ══════════════════════════════════════════════════════════════
 
 // Versão do sistema — quando muda, força recriação dos usuários padrão
-const SYS_VERSION = 'lt4_v3';
+const SYS_VERSION = 'lt4_v10';
 if(localStorage.getItem('lt4_sys_ver') !== SYS_VERSION){
   // Nova versão detectada — forçar recriação dos usuários padrão
   // (preserva operadores mas recria líderes/jorge com senhas corretas)
