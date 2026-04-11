@@ -353,11 +353,12 @@ tr:last-child td{border-bottom:none;}
   <div class="sb-sec"><div class="sb-sec-lbl">Ferramentas</div>
     <button class="sb-item" onclick="nav('simul',this)"><span class="ico">🎮</span>Simulador OS</button>
     <button class="sb-item" onclick="nav('estoque',this)"><span class="ico">🏭</span>Estoque</button>
-    <button class="sb-item" onclick="nav('pedagogico',this)" style="background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(56,189,248,.08));border:1px solid rgba(129,140,248,.2);"><span class="ico">🧠</span><span style="background:linear-gradient(90deg,#a5b4fc,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent">IA Pedagógica</span></button>
+    <button class="sb-item" id="sb-ia-btn" onclick="abrirIAPedagogica()" style="background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(56,189,248,.08));border:1px solid rgba(129,140,248,.2);"><span class="ico">🧠</span><span style="background:linear-gradient(90deg,#a5b4fc,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent">IA Pedagógica</span></button>
   </div>
 
   <div class="sb-bottom">
     <button class="btn sec sm" style="width:100%;margin-bottom:6px" id="sb-rh-btn" onclick="abrirRH()">🏢 Módulo RH →</button>
+    <button class="btn sm" id="sb-edu-btn" onclick="abrirAreaEducador()" style="width:100%;margin-bottom:6px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--y);display:none;">🗝️ Área do Educador</button>
     <button class="btn da sm" style="width:100%" onclick="sair()">Sair</button>
   </div>
 </aside>
@@ -598,6 +599,13 @@ tr:last-child td{border-bottom:none;}
     <h1 style="background:linear-gradient(90deg,#a5b4fc,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent">🧠 IA Pedagógica</h1>
     <div class="ps">Geração automática de atividades pedagógicas — 100% offline, sem internet, sem custo</div>
   </div>
+  
+  <!-- BLOQUEIO para quem não tem acesso -->
+  <div id="ia-bloqueio" style="display:none;text-align:center;padding:60px 20px;">
+    <div style="font-size:48px;margin-bottom:16px;">🔒</div>
+    <div style="font-size:18px;font-weight:700;color:var(--r);margin-bottom:8px;">Acesso Restrito</div>
+    <div style="font-size:13px;color:var(--mu);max-width:340px;margin:0 auto;">Este módulo é exclusivo para o <strong style="color:var(--tx)">Conselho e Gestores</strong>.<br>As atividades geradas aqui são distribuídas para líderes e operadores.</div>
+  </div>
 
   <!-- Configuração -->
   <div class="ia-config">
@@ -709,6 +717,68 @@ tr:last-child td{border-bottom:none;}
     </div>
   </div>
 </div>
+
+  <!-- ══ ÁREA DO EDUCADOR ══ -->
+  <div id="educador-gate-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;">
+    <div style="background:var(--card);border:1px solid var(--bdr2);border-radius:var(--rr);padding:28px 24px;width:100%;max-width:360px;text-align:center;">
+      <div style="font-size:32px;margin-bottom:10px;">🗝️</div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:4px;">Área do Educador</div>
+      <div style="font-size:11px;color:var(--mu);margin-bottom:16px;">Acesso exclusivo ao coordenador do projeto</div>
+      <input type="password" id="edu-pass-input" placeholder="Senha do educador"
+        onkeydown="if(event.key==='Enter')verificarEducador()"
+        style="width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 12px;color:var(--tx);font-family:var(--sans);font-size:13px;outline:none;margin-bottom:10px;">
+      <div id="edu-pass-err" style="color:var(--r);font-size:11px;margin-bottom:8px;display:none;">Senha incorreta.</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="verificarEducador()" style="flex:1;background:var(--a);color:#000;border:none;border-radius:var(--rs);padding:10px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;">Entrar</button>
+        <button onclick="fecharEducadorGate()" style="flex:1;background:transparent;color:var(--mu);border:1px solid var(--bdr2);border-radius:var(--rs);padding:10px;font-family:var(--sans);font-size:13px;cursor:pointer;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="v-educador-area" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:400;overflow-y:auto;padding:20px;">
+    <div style="max-width:900px;margin:0 auto;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:22px;font-weight:700;color:var(--a)">🗝️ Área do Educador</div>
+          <div style="font-size:12px;color:var(--mu);margin-top:2px;">Coordenação pedagógica — LogiTrein 4.0</div>
+        </div>
+        <button onclick="sairEducador()" style="background:rgba(248,113,113,.12);color:var(--r);border:1px solid rgba(248,113,113,.25);border-radius:var(--rs);padding:8px 16px;font-family:var(--sans);font-size:12px;cursor:pointer;font-weight:600;">🔒 Sair da Área</button>
+      </div>
+
+      <!-- Tabela de credenciais -->
+      <div style="background:var(--card);border:1px solid var(--bdr);border-radius:var(--rr);padding:20px;margin-bottom:16px;">
+        <div style="font-size:14px;font-weight:600;color:var(--a);margin-bottom:14px;">📋 Tabela de Credenciais LogiTrein 4.0</div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead>
+              <tr style="background:rgba(56,189,248,.08);">
+                <th style="padding:10px 12px;text-align:left;border-bottom:1px solid var(--bdr);color:var(--mu);font-size:11px;text-transform:uppercase;letter-spacing:1px;">Nível</th>
+                <th style="padding:10px 12px;text-align:left;border-bottom:1px solid var(--bdr);color:var(--mu);font-size:11px;text-transform:uppercase;letter-spacing:1px;">Usuário</th>
+                <th style="padding:10px 12px;text-align:left;border-bottom:1px solid var(--bdr);color:var(--mu);font-size:11px;text-transform:uppercase;letter-spacing:1px;">Senha</th>
+                <th style="padding:10px 12px;text-align:left;border-bottom:1px solid var(--bdr);color:var(--mu);font-size:11px;text-transform:uppercase;letter-spacing:1px;">Perfil</th>
+              </tr>
+            </thead>
+            <tbody id="edu-cred-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Atividades salvas do banco -->
+      <div style="background:var(--card);border:1px solid var(--bdr);border-radius:var(--rr);padding:20px;margin-bottom:16px;">
+        <div style="font-size:14px;font-weight:600;color:var(--a);margin-bottom:14px;">📚 Banco de Atividades Geradas</div>
+        <div id="edu-banco-list"></div>
+        <div style="margin-top:12px;">
+          <button onclick="nav('pedagogico',document.getElementById('sb-ia-btn'));sairEducador()" style="background:linear-gradient(135deg,#6366f1,#38bdf8);color:#fff;border:none;border-radius:var(--rs);padding:10px 18px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;">✨ Gerar Nova Atividade</button>
+        </div>
+      </div>
+
+      <!-- Operadores cadastrados -->
+      <div style="background:var(--card);border:1px solid var(--bdr);border-radius:var(--rr);padding:20px;">
+        <div style="font-size:14px;font-weight:600;color:var(--a);margin-bottom:14px;">👥 Operadores Cadastrados</div>
+        <div id="edu-ops-list"></div>
+      </div>
+    </div>
+  </div>
 
 </div><!-- /content -->
 </div><!-- /app -->
@@ -1191,6 +1261,9 @@ function startApp(){
   if(CU.nivel!=='OPERACIONAL') document.getElementById('sb-gestao').style.display='block';
   // Operacional não vê sidebar gestão
   populateSelects();renderDash();renderTeams();setInterval(tick,12000);setInterval(updateClk,1000);updateClk();
+  // Mostrar botão Área do Educador apenas para CONSELHO
+  const eduBtn=document.getElementById('sb-edu-btn');
+  if(eduBtn) eduBtn.style.display=(CU.nivel==='CONSELHO')?'block':'none';
   // Para operadores: Meu Dia como default, ocultar gerenciamento
   if(CU.nivel==='OPERACIONAL'){
     nav('meudia', document.querySelector('.sb-item[onclick*="meudia"]'));
@@ -1199,20 +1272,25 @@ function startApp(){
       ['btn-add-func','btn-ed-times','btn-gerar-os','btn-distrib-auto'].forEach(id=>{
         const el=document.getElementById(id);if(el)el.style.display='none';
       });
-      // Esconder sidebar "Simulador OS" e "Estoque" para operadores
+      // Esconder sidebar "Simulador OS", "Relatórios" e "IA Pedagógica" para operadores
       document.querySelectorAll('.sb-item').forEach(b=>{
         const oc=b.getAttribute('onclick')||b.textContent;
         if(oc.includes('simul')||oc.includes('relat'))b.style.display='none';
       });
+      // Esconder IA Pedagógica para operadores
+      const iaBtn=document.getElementById('sb-ia-btn');
+      if(iaBtn) iaBtn.style.display='none';
       // Esconder seção gestão no sidebar
       const sg=document.getElementById('sb-gestao');if(sg)sg.style.display='none';
     },50);
   }
-  // Líder: pode adicionar membros mas não editar estrutura de times nem ver simul na nav
+  // Líder: pode adicionar membros mas não editar estrutura de times nem ver IA
   if(CU.nivel==='LIDER'){
     setTimeout(()=>{
       const be=document.getElementById('btn-ed-times');
       if(be)be.style.display='none';
+      const iaBtn=document.getElementById('sb-ia-btn');
+      if(iaBtn) iaBtn.style.display='none';
     },50);
   }
 }
@@ -2123,9 +2201,35 @@ function excluirFuncionario(uk){
 
 // ══════════════════════════════════════════════════════════════
 // IA PEDAGÓGICA — 100% LOCAL, SEM API, SEM CUSTO
-// Gera atividades reais baseadas nos dados do sistema
+// Acesso restrito: apenas CONSELHO e GESTOR
 // ══════════════════════════════════════════════════════════════
+let iaDesbloqueado=false;
 let iaUltimoTexto='';
+
+function abrirIAPedagogica(){
+  // CONSELHO e GESTOR entram direto
+  if(CU&&(CU.nivel==='CONSELHO'||CU.nivel==='GESTOR')){
+    iaDesbloqueado=true;
+    nav('pedagogico',document.getElementById('sb-ia-btn'));
+    return;
+  }
+  // Líderes e Operadores não têm acesso
+  if(CU&&(CU.nivel==='LIDER'||CU.nivel==='OPERACIONAL')){
+    mostrarMsgIA();
+    return;
+  }
+  nav('pedagogico',document.getElementById('sb-ia-btn'));
+}
+
+function mostrarMsgIA(){
+  // Exibir msg de acesso negado temporariamente
+  const btn=document.getElementById('sb-ia-btn');
+  if(!btn) return;
+  const orig=btn.innerHTML;
+  btn.innerHTML='<span class="ico">🔒</span><span style="color:var(--r);font-size:11px">Apenas Conselho</span>';
+  setTimeout(()=>btn.innerHTML=orig, 2500);
+}
+
 let iaSalvas=JSON.parse(localStorage.getItem('lt4_ia_atividades')||'[]');
 let iaHistorico=JSON.parse(localStorage.getItem('lt4_ia_historico')||'[]');
 
@@ -2756,6 +2860,131 @@ function excluirAtividade(id){
   iaSalvas=iaSalvas.filter(x=>x.id!==id);
   localStorage.setItem('lt4_ia_atividades',JSON.stringify(iaSalvas));
   renderIaBanco();
+}
+
+// ══════════════════════════════════════════════════════════════
+// ÁREA DO EDUCADOR — Acesso por senha educador2026
+// ══════════════════════════════════════════════════════════════
+const EDU_PASS = 'educador2026';
+let eduDesbloqueado = false;
+
+function abrirAreaEducador(){
+  if(eduDesbloqueado){
+    mostrarAreaEducador();return;
+  }
+  document.getElementById('edu-pass-input').value='';
+  document.getElementById('edu-pass-err').style.display='none';
+  document.getElementById('educador-gate-overlay').style.display='flex';
+  setTimeout(()=>document.getElementById('edu-pass-input').focus(),100);
+}
+
+function verificarEducador(){
+  const v=document.getElementById('edu-pass-input').value;
+  if(v===EDU_PASS){
+    eduDesbloqueado=true;
+    document.getElementById('educador-gate-overlay').style.display='none';
+    mostrarAreaEducador();
+  } else {
+    document.getElementById('edu-pass-err').style.display='block';
+    document.getElementById('edu-pass-input').value='';
+    document.getElementById('edu-pass-input').focus();
+    setTimeout(()=>document.getElementById('edu-pass-err').style.display='none',3000);
+  }
+}
+
+function fecharEducadorGate(){
+  document.getElementById('educador-gate-overlay').style.display='none';
+}
+
+function mostrarAreaEducador(){
+  document.getElementById('v-educador-area').style.display='block';
+  renderAreaEducador();
+}
+
+function sairEducador(){
+  eduDesbloqueado=false;
+  document.getElementById('v-educador-area').style.display='none';
+}
+
+function renderAreaEducador(){
+  const users=S.g('users')||{};
+  // Tabela de credenciais
+  const tbody=document.getElementById('edu-cred-tbody');
+  if(tbody){
+    const nivelCor={CONSELHO:'var(--y)',GESTOR:'var(--o)',LIDER:'var(--a)',OPERACIONAL:'var(--g)'};
+    const nivelLabel={CONSELHO:'Conselho',GESTOR:'Gestão',LIDER:'Líder',OPERACIONAL:'Operação'};
+    const nivelPerf={CONSELHO:'Admin Total',GESTOR:'Supervisor',LIDER:'Chefia de Turno',OPERACIONAL:'Jovem Aprendiz'};
+    tbody.innerHTML=Object.entries(users)
+      .sort((a,b)=>{const o={CONSELHO:0,GESTOR:1,LIDER:2,OPERACIONAL:3};return (o[a[1].nivel]||9)-(o[b[1].nivel]||9);})
+      .map(([k,u])=>`<tr>
+        <td style="padding:9px 12px;border-bottom:1px solid var(--bdr);font-size:12px;font-weight:600;color:${nivelCor[u.nivel]||'var(--mu)'}">${nivelLabel[u.nivel]||u.nivel}</td>
+        <td style="padding:9px 12px;border-bottom:1px solid var(--bdr);font-family:var(--mono);font-size:12px;color:var(--g)">${k}</td>
+        <td style="padding:9px 12px;border-bottom:1px solid var(--bdr);font-family:var(--mono);font-size:12px;color:var(--a)">${u.pass}</td>
+        <td style="padding:9px 12px;border-bottom:1px solid var(--bdr);font-size:12px;color:var(--tx)">${nivelPerf[u.nivel]||'—'}</td>
+      </tr>`).join('');
+  }
+
+  // Banco de atividades
+  const bancoEl=document.getElementById('edu-banco-list');
+  const salvas=JSON.parse(localStorage.getItem('lt4_ia_atividades')||'[]');
+  if(bancoEl){
+    if(!salvas.length){
+      bancoEl.innerHTML='<div style="color:var(--mu);font-size:13px;padding:8px 0">Nenhuma atividade salva ainda. Use a IA Pedagógica para gerar e salvar.</div>';
+    } else {
+      bancoEl.innerHTML=salvas.map(s=>`
+        <div style="background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:13px;font-weight:600">${s.titulo||'Atividade'}</div>
+            <div style="font-size:11px;color:var(--mu)">${s.tipo} · ${s.setor} · ${s.data}</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="verAtivEduc('${s.id}')" style="background:transparent;border:1px solid var(--bdr2);border-radius:var(--rs);padding:5px 10px;color:var(--tx);font-family:var(--sans);font-size:11px;cursor:pointer;">Ver</button>
+            <button onclick="copiarAtivEduc('${s.id}')" style="background:transparent;border:1px solid var(--bdr2);border-radius:var(--rs);padding:5px 10px;color:var(--a);font-family:var(--sans);font-size:11px;cursor:pointer;">Copiar</button>
+          </div>
+        </div>`).join('');
+    }
+  }
+
+  // Operadores
+  const opsEl=document.getElementById('edu-ops-list');
+  if(opsEl){
+    const ops=Object.entries(users).filter(([,u])=>u.nivel==='OPERACIONAL');
+    if(!ops.length){
+      opsEl.innerHTML='<div style="color:var(--mu);font-size:13px">Nenhum operador cadastrado ainda.</div>';
+    } else {
+      opsEl.innerHTML=ops.map(([k,u])=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bdr);">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--g);color:#000;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${u.nome.split(' ').map(x=>x[0]).slice(0,2).join('')}</div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:500">${u.nome}</div><div style="font-size:11px;color:var(--mu)">${u.cargo} · ${(S.g('times')||{})[u.time]?.nome||u.time||'—'}</div></div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--mu)">${k} / ${u.pass}</div>
+        </div>`).join('');
+    }
+  }
+}
+
+function verAtivEduc(id){
+  const salvas=JSON.parse(localStorage.getItem('lt4_ia_atividades')||'[]');
+  const item=salvas.find(x=>x.id===id);
+  if(!item) return;
+  sairEducador();
+  setTimeout(()=>{
+    nav('pedagogico',document.getElementById('sb-ia-btn'));
+    iaUltimoTexto=item.texto;
+    const output=document.getElementById('ia-output');
+    if(output)output.innerHTML=formatarTextoIA(item.texto);
+    const estadoInicial=document.getElementById('ia-estado-inicial');
+    if(estadoInicial)estadoInicial.style.display='none';
+    const resultArea=document.getElementById('ia-resultado-area');
+    if(resultArea)resultArea.style.display='block';
+  },100);
+}
+
+function copiarAtivEduc(id){
+  const salvas=JSON.parse(localStorage.getItem('lt4_ia_atividades')||'[]');
+  const item=salvas.find(x=>x.id===id);
+  if(!item) return;
+  navigator.clipboard.writeText(item.texto).then(()=>alert('Atividade copiada!'))
+    .catch(()=>{const ta=document.createElement('textarea');ta.value=item.texto;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('Copiada!');});
 }
 
 // ══════════════════════════════════════════════════════════════
