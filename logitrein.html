@@ -767,15 +767,24 @@ tr:last-child td{border-bottom:none;}
       <div style="background:var(--card);border:1px solid var(--bdr);border-radius:var(--rr);padding:20px;margin-bottom:16px;">
         <div style="font-size:14px;font-weight:600;color:var(--a);margin-bottom:14px;">📚 Banco de Atividades Geradas</div>
         <div id="edu-banco-list"></div>
-        <div style="margin-top:12px;">
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
           <button onclick="nav('pedagogico',document.getElementById('sb-ia-btn'));sairEducador()" style="background:linear-gradient(135deg,#6366f1,#38bdf8);color:#fff;border:none;border-radius:var(--rs);padding:10px 18px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;">✨ Gerar Nova Atividade</button>
+          <button onclick="exportarExcelRH()" style="background:rgba(52,211,153,.12);color:var(--g);border:1px solid rgba(52,211,153,.3);border-radius:var(--rs);padding:10px 18px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;">📊 Exportar Excel</button>
+          <button onclick="fazerBackupGeral()" style="background:rgba(56,189,248,.1);color:var(--a);border:1px solid rgba(56,189,248,.25);border-radius:var(--rs);padding:10px 18px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;">💾 Backup Geral</button>
+          <button onclick="importarBackup()" style="background:rgba(251,191,36,.1);color:var(--y);border:1px solid rgba(251,191,36,.25);border-radius:var(--rs);padding:10px 18px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;">📥 Importar Backup</button>
         </div>
       </div>
 
       <!-- Operadores cadastrados -->
-      <div style="background:var(--card);border:1px solid var(--bdr);border-radius:var(--rr);padding:20px;">
+      <div style="background:var(--card);border:1px solid var(--bdr);border-radius:var(--rr);padding:20px;margin-bottom:16px;">
         <div style="font-size:14px;font-weight:600;color:var(--a);margin-bottom:14px;">👥 Operadores Cadastrados</div>
         <div id="edu-ops-list"></div>
+      </div>
+
+      <!-- Histórico de desligamentos -->
+      <div style="background:var(--card);border:1px solid var(--bdr);border-radius:var(--rr);padding:20px;">
+        <div style="font-size:14px;font-weight:600;color:var(--r);margin-bottom:14px;">🚪 Histórico de Desligamentos</div>
+        <div id="edu-desl-list"></div>
       </div>
     </div>
   </div>
@@ -953,6 +962,66 @@ tr:last-child td{border-bottom:none;}
   <div class="ff"><label>Feedback</label><textarea id="av-feed" placeholder="Pontos fortes e melhoria..."></textarea></div>
   <button class="btn pr" style="width:100%;padding:12px" onclick="salvarAval()">Salvar</button>
 </div></div>
+
+<!-- ═══ MODAL DESLIGAMENTO ═══ -->
+<div class="ov" id="mod-desligamento"><div class="mod" style="max-width:620px">
+  <div class="mod-h">
+    <h3>🚪 Desligamento de Funcionário</h3>
+    <button class="xbtn" onclick="fecharModal('mod-desligamento')">✕</button>
+  </div>
+  <div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:var(--rs);padding:12px;margin-bottom:14px;">
+    <div style="font-size:14px;font-weight:700" id="desl-nome">—</div>
+    <div style="font-size:11px;color:var(--mu)" id="desl-cargo">—</div>
+  </div>
+  <div class="ff"><label>Tipo de Desligamento</label>
+    <select id="desl-tipo" onchange="onDeslTipo()">
+      <option value="pedido">Pedido de Demissão</option>
+      <option value="semjusta">Demissão Sem Justa Causa</option>
+      <option value="experiencia">Não passou no Período de Experiência</option>
+      <option value="justa">Justa Causa</option>
+      <option value="acordo">Acordo (Art. 484-A CLT)</option>
+    </select>
+  </div>
+  <div class="ff" id="desl-jcausa" style="display:none">
+    <label>Motivo da Justa Causa</label>
+    <select id="desl-jcausa-sel">
+      <option>Ato de Improbidade (desonestidade/fraude)</option>
+      <option>Incontinência de Conduta ou Mau Procedimento</option>
+      <option>Desídia (negligência habitual)</option>
+      <option>Embriaguez Habitual ou em Serviço</option>
+      <option>Violação de Segredo da Empresa</option>
+      <option>Abandono de Emprego</option>
+      <option>Ofensas Físicas ou Morais</option>
+      <option>Prática Constante de Jogos de Azar</option>
+    </select>
+  </div>
+  <div style="background:var(--bg3);border-radius:var(--rs);padding:10px 12px;margin-bottom:12px;font-size:12px;">
+    <div style="font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Verbas Rescisórias Aplicáveis (CLT)</div>
+    <div id="desl-verbas-preview" style="color:var(--g);line-height:1.7">Selecione o tipo acima</div>
+  </div>
+  <div style="border-top:1px solid var(--bdr);padding-top:12px;margin-bottom:10px;">
+    <div style="font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">📋 Entrevista de Saída</div>
+    <div class="ff"><label>1. Carreira e Oportunidades</label>
+      <select id="desl-s1"><option value="">Não respondeu</option><option>Falta de oportunidade de crescimento</option><option>Cargo aquém das expectativas</option><option>Recebeu oferta melhor</option><option>Satisfeito com a carreira</option></select></div>
+    <div class="ff"><label>2. Remuneração e Benefícios</label>
+      <select id="desl-s2"><option value="">Não respondeu</option><option>Salário abaixo do mercado</option><option>Benefícios insatisfatórios</option><option>Satisfeito com a remuneração</option></select></div>
+    <div class="ff"><label>3. Liderança e Cultura</label>
+      <select id="desl-s3"><option value="">Não respondeu</option><option>Conflito com liderança direta</option><option>Cultura organizacional incompatível</option><option>Falta de reconhecimento</option><option>Satisfeito com a liderança</option></select></div>
+    <div class="ff"><label>4. Estilo de Vida e Saúde Mental</label>
+      <select id="desl-s4"><option value="">Não respondeu</option><option>Sobrecarga de trabalho / estresse</option><option>Equilíbrio vida-trabalho prejudicado</option><option>Problemas de saúde</option><option>Mudança de cidade/estado</option></select></div>
+    <div class="ff"><label>5. Fatores Pessoais e Externos</label>
+      <select id="desl-s5"><option value="">Não respondeu</option><option>Motivos familiares</option><option>Retorno aos estudos</option><option>Empreendimento próprio</option><option>Outro emprego</option></select></div>
+    <div class="ff"><label>6. Outros — relato do entrevistador</label>
+      <textarea id="desl-s6" placeholder="Anote observações adicionais da entrevista de saída..."></textarea></div>
+  </div>
+  <div class="ff"><label>Observações Gerais</label>
+    <textarea id="desl-obs" placeholder="Detalhes adicionais do desligamento..."></textarea></div>
+  <div style="display:flex;gap:8px;">
+    <button class="btn da" style="flex:1;padding:12px;font-size:13px;" onclick="confirmarDesligamento()">✓ Confirmar Desligamento</button>
+    <button class="btn sec" style="padding:12px;" onclick="fecharModal('mod-desligamento')">Cancelar</button>
+  </div>
+</div></div>
+
 
 <script>
 // ══════════════════════════════════════════════════════════════
@@ -2189,14 +2258,74 @@ function filtrarTabsRH(){
 // EXCLUIR FUNCIONÁRIO
 // ══════════════════════════════════════════════════════════════
 function excluirFuncionario(uk){
+  // Apenas CONSELHO e GESTOR podem desligar
+  if(!CU||(CU.nivel!=='CONSELHO'&&CU.nivel!=='GESTOR')){
+    alert('Apenas o Gestor ou Conselho podem realizar desligamentos.');return;
+  }
+  abrirDesligamento(uk);
+}
+
+function abrirDesligamento(uk){
   const users=S.g('users')||{};
-  const nome=users[uk]?.nome||uk;
-  if(!confirm('Excluir '+nome+'? Esta ação não pode ser desfeita.')) return;
+  const u=users[uk]; if(!u) return;
+  window._desl_uk=uk;
+  document.getElementById('desl-nome').textContent=u.nome;
+  document.getElementById('desl-cargo').textContent=u.cargo+' · '+(u.setor||'');
+  document.getElementById('desl-tipo').value='pedido';
+  document.getElementById('desl-jcausa').style.display='none';
+  document.getElementById('desl-obs').value='';
+  // Ficha de saída: limpar
+  ['desl-s1','desl-s2','desl-s3','desl-s4','desl-s5'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('desl-s6').value='';
+  document.getElementById('mod-desligamento').classList.add('on');
+}
+
+function confirmarDesligamento(){
+  const uk=window._desl_uk;
+  const users=S.g('users')||{};
+  const u=users[uk]; if(!u) return;
+  const tipo=document.getElementById('desl-tipo').value;
+  const jcausa=document.getElementById('desl-jcausa-sel')?.value||'';
+  const obs=document.getElementById('desl-obs').value;
+  // Montar ficha de saída
+  const ficha={
+    func:u.nome,cargo:u.cargo,setor:u.setor,
+    data:new Date().toISOString().split('T')[0],
+    tipo,jcausa:tipo==='justa'?jcausa:'',obs,
+    s1:document.getElementById('desl-s1').value,
+    s2:document.getElementById('desl-s2').value,
+    s3:document.getElementById('desl-s3').value,
+    s4:document.getElementById('desl-s4').value,
+    s5:document.getElementById('desl-s5').value,
+    s6:document.getElementById('desl-s6').value,
+    verbas:calcularVerbas(tipo,u)
+  };
+  // Salvar no histórico de desligamentos
+  const hist=S.g('desligamentos')||[];
+  hist.unshift({id:'d'+Date.now(),...ficha});
+  S.s('desligamentos',hist);
+  // Remover do sistema
   delete users[uk];
   S.s('users',users);
-  renderTeams();
-  renderRHPessoas();
-  populateSelects();
+  fecharModal('mod-desligamento');
+  renderTeams(); renderRHPessoas(); populateSelects();
+  // Mostrar resumo
+  const tipoLabel={pedido:'Pedido de Demissão',semjusta:'Demissão Sem Justa Causa',experiencia:'Não passou Período de Experiência',justa:'Justa Causa',acordo:'Acordo (Art. 484-A)'};
+  alert('Desligamento de '+u.nome+' concluído! Tipo: '+tipoLabel[tipo]+'. Verbas: '+ficha.verbas.join(', '));
+}
+
+function calcularVerbas(tipo,u){
+  const verbas=[];
+  // Regras CLT simplificadas
+  verbas.push('Saldo de Salário');
+  if(tipo==='pedido'){verbas.push('Aviso Prévio (trabalhado/descontado)','13º Proporcional','Férias Vencidas + Proporcionais');}
+  else if(tipo==='semjusta'){verbas.push('Aviso Prévio Indenizado','13º Proporcional','Férias Venc.+Prop.','Saque FGTS','Multa 40% FGTS','Seguro-Desemprego');}
+  else if(tipo==='experiencia'){verbas.push('Férias Vencidas','Metade do Aviso se rescisão do empregador');}
+  else if(tipo==='justa'){verbas.push('Apenas Férias Vencidas (se houver)');}
+  else if(tipo==='acordo'){verbas.push('Aviso 50% indenizado','13º Proporcional','Férias Venc.+Prop.','FGTS 80% do saldo','Multa 20% FGTS');}
+  return verbas;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2960,6 +3089,28 @@ function renderAreaEducador(){
         </div>`).join('');
     }
   }
+  // Desligamentos
+  const deslEl=document.getElementById('edu-desl-list');
+  if(deslEl){
+    const deslig=S.g('desligamentos')||[];
+    const TIPO_L={pedido:'Pedido de Demissão',semjusta:'Sem Justa Causa',experiencia:'Período de Experiência',justa:'Justa Causa',acordo:'Acordo Art.484-A'};
+    const TIPO_C={pedido:'var(--mu)',semjusta:'var(--r)',experiencia:'var(--y)',justa:'var(--r)',acordo:'var(--a)'};
+    if(!deslig.length){
+      deslEl.innerHTML='<div style="color:var(--mu);font-size:13px">Nenhum desligamento registrado.</div>';
+    } else {
+      deslEl.innerHTML=deslig.map(d=>`
+        <div style="padding:10px 0;border-bottom:1px solid var(--bdr);">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+            <div><div style="font-size:13px;font-weight:600">${d.func}</div>
+            <div style="font-size:11px;color:var(--mu)">${d.cargo||''} · ${d.data}</div></div>
+            <span style="font-size:11px;font-weight:600;color:${TIPO_C[d.tipo]||'var(--mu)'};background:rgba(0,0,0,.2);padding:3px 8px;border-radius:20px">${TIPO_L[d.tipo]||d.tipo}</span>
+          </div>
+          ${d.jcausa?`<div style="font-size:11px;color:var(--r);margin-top:4px">⚠ ${d.jcausa}</div>`:''}
+          ${d.s1||d.s2||d.s3?`<div style="font-size:11px;color:var(--mu);margin-top:4px">Motivos: ${[d.s1,d.s2,d.s3].filter(Boolean).join(' / ')}</div>`:''}
+          ${d.s6?`<div style="font-size:11px;color:var(--mu);font-style:italic;margin-top:2px">"${d.s6}"</div>`:''}
+        </div>`).join('');
+    }
+  }
 }
 
 function verAtivEduc(id){
@@ -2987,35 +3138,141 @@ function copiarAtivEduc(id){
     .catch(()=>{const ta=document.createElement('textarea');ta.value=item.texto;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('Copiada!');});
 }
 
-// ══════════════════════════════════════════════════════════════
-// INIT — garante usuários padrão na primeira execução
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// EXPORTAR EXCEL (CSV que abre no Excel/Sheets)
+// ══════════════════════════════════════════════════
+function exportarExcelRH(){
+  if(!CU||CU.nivel!=='CONSELHO'){alert('Apenas Jorge Zensque pode exportar.');return;}
+  const users=S.g('users')||{};
+  const ponto=S.g('ponto')||[];
+  const disc=S.g('disc')||[];
+  const nrs=S.g('nrs')||[];
+  const proms=S.g('promocoes')||[];
+  const deslig=S.g('desligamentos')||[];
+  const avs=S.g('avaliacoes')||[];
+  const NL='\r\n';
+  const Q=function(v){return '"'+(String(v||'').replace(/"/g,'""'))+'"';};
+  var csv='sep=,'+NL;
+  csv+='=== FUNCIONARIOS ==='+NL;
+  csv+='Nome,Usuario,Cargo,Setor,Time,Admissao,Nivel'+NL;
+  Object.entries(users).forEach(function(e){
+    var k=e[0],u=e[1];
+    csv+=Q(u.nome)+','+Q(k)+','+Q(u.cargo)+','+Q(u.setor)+','+Q((S.g('times')||{})[u.time]&&(S.g('times')||{})[u.time].nome||u.time||'')+','+Q(u.admissao)+','+Q(u.nivel)+NL;
+  });
+  csv+=NL+'=== PONTO ==='+NL;
+  csv+='Funcionario,Data,Entrada,Saida,Total_min,Status'+NL;
+  ponto.slice(0,500).forEach(function(p){csv+=Q(p.func)+','+Q(p.data)+','+Q(p.entrada)+','+Q(p.saida)+','+Q(p.total)+','+Q(p.status)+NL;});
+  csv+=NL+'=== DISC ==='+NL;
+  csv+='Funcionario,Data,Perfil,D,I,S,C'+NL;
+  disc.forEach(function(d){csv+=Q(d.func)+','+Q(d.data)+','+Q(d.perfil)+','+Q(d.D)+','+Q(d.I)+','+Q(d.S)+','+Q(d.C)+NL;});
+  csv+=NL+'=== NR1 ==='+NL;
+  csv+='Funcionario,Norma,Data,Instrutor,Horas,Vencimento'+NL;
+  nrs.forEach(function(n){csv+=Q(n.func)+','+Q(n.norma)+','+Q(n.data)+','+Q(n.inst)+','+Q(n.horas)+','+Q(n.venc)+NL;});
+  csv+=NL+'=== PROMOCOES ==='+NL;
+  csv+='Funcionario,Cargo_Anterior,Cargo_Novo,Data,Status'+NL;
+  proms.forEach(function(p){csv+=Q(p.func)+','+Q(p.cargoAt)+','+Q(p.cargoNovo)+','+Q(p.data)+','+Q(p.status)+NL;});
+  csv+=NL+'=== AVALIACOES ==='+NL;
+  csv+='Funcionario,Data,Produt,Equipe,Pontual,Iniciativa,Qualidade,Media'+NL;
+  avs.forEach(function(a){csv+=Q(a.func)+','+Q(a.data)+','+Q(a.p)+','+Q(a.e)+','+Q(a.pt)+','+Q(a.i)+','+Q(a.q)+','+Q((a.m||0).toFixed(1))+NL;});
+  csv+=NL+'=== DESLIGAMENTOS ==='+NL;
+  csv+='Funcionario,Data,Tipo,Justa_Causa,Motivo'+NL;
+  deslig.forEach(function(d){csv+=Q(d.func)+','+Q(d.data)+','+Q(d.tipo)+','+Q(d.jcausa)+','+Q([d.s1,d.s2,d.s3].filter(Boolean).join(' / '))+NL;});
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download='LogiTrein_RH_'+new Date().toISOString().split('T')[0]+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  alert('Arquivo CSV exportado com sucesso!');
+}
 
-// Versão do sistema — quando muda, força recriação dos usuários padrão
-const SYS_VERSION = 'lt4_v10';
+// ══════════════════════════════════════════════════════════════
+// INIT — versão v11, força recriação de usuários padrão
+// ══════════════════════════════════════════════════════════════
+const SYS_VERSION = 'lt4_v11';
 if(localStorage.getItem('lt4_sys_ver') !== SYS_VERSION){
-  // Nova versão detectada — forçar recriação dos usuários padrão
-  // (preserva operadores mas recria líderes/jorge com senhas corretas)
   const existingUsers = JSON.parse(localStorage.getItem('lt4_users')||'{}');
   const padroes = {
     'jorge.zensque':{pass:'master2026',nome:'Jorge Zensque',nivel:'CONSELHO',cargo:'Conselho Deliberativo',time:null,setor:'conselho',meta:0,admissao:'2026-01-01'},
     'gestor':{pass:'gest123',nome:'Gestor Geral',nivel:'GESTOR',cargo:'CEO / Gestor',time:null,setor:'gestao',meta:0,admissao:'2026-01-01'},
-    'lider.a':{pass:'lid123',nome:'Líder Time A',nivel:'LIDER',cargo:'Líder de Equipe',time:'ta',setor:'picking',meta:0,admissao:'2026-01-05'},
-    'lider.b':{pass:'lid123',nome:'Líder Time B',nivel:'LIDER',cargo:'Líder de Equipe',time:'tb',setor:'embalagem',meta:0,admissao:'2026-01-05'},
-    'lider.c':{pass:'lid123',nome:'Líder Time C',nivel:'LIDER',cargo:'Líder de Equipe',time:'tc',setor:'expedicao',meta:0,admissao:'2026-01-05'},
+    'lider.a':{pass:'lid123',nome:'Lider Time A',nivel:'LIDER',cargo:'Lider de Equipe',time:'ta',setor:'picking',meta:0,admissao:'2026-01-05'},
+    'lider.b':{pass:'lid123',nome:'Lider Time B',nivel:'LIDER',cargo:'Lider de Equipe',time:'tb',setor:'embalagem',meta:0,admissao:'2026-01-05'},
+    'lider.c':{pass:'lid123',nome:'Lider Time C',nivel:'LIDER',cargo:'Lider de Equipe',time:'tc',setor:'expedicao',meta:0,admissao:'2026-01-05'},
   };
   Object.entries(padroes).forEach(([k,v])=>{ existingUsers[k]=v; });
   localStorage.setItem('lt4_users', JSON.stringify(existingUsers));
   localStorage.setItem('lt4_sys_ver', SYS_VERSION);
 }
 
+// ══════════════════════════════════════════════════════════
+// DESLIGAMENTO — onDeslTipo (verbas CLT dinâmicas)
+// ══════════════════════════════════════════════════════════
+function onDeslTipo(){
+  var t=document.getElementById('desl-tipo').value;
+  var jc=document.getElementById('desl-jcausa');
+  if(jc) jc.style.display=(t==='justa'?'block':'none');
+  var VB={
+    pedido:'• Saldo de Salário\n• Aviso Prévio (trabalhado/descontado)\n• 13º Proporcional\n• Férias Vencidas + Proporcionais',
+    semjusta:'• Saldo de Salário\n• Aviso Prévio Indenizado\n• 13º Proporcional\n• Férias Venc.+Prop.\n• Saque FGTS\n• Multa 40% FGTS\n• Seguro-Desemprego',
+    experiencia:'• Saldo de Salário\n• Férias Proporcionais\n• Indenização proporcional (se rescisão pelo empregador)',
+    justa:'• Saldo de Salário\n• Somente Férias Vencidas (se houver)\n• SEM aviso prévio, FGTS ou seguro-desemprego',
+    acordo:'• Saldo de Salário\n• Aviso Prévio 50% indenizado\n• 13º Proporcional\n• Férias Venc.+Prop.\n• FGTS: 80% do saldo\n• Multa: 20% (não 40%)'
+  };
+  var el=document.getElementById('desl-verbas-preview');
+  if(el) el.innerHTML=(VB[t]||'—').replace(/\n/g,'<br>');
+}
+
+// ══════════════════════════════════════════════════════════
+// BACKUP GERAL DO SISTEMA — só jorge.zensque
+// ══════════════════════════════════════════════════════════
+function fazerBackupGeral(){
+  if(!CU||CU.nivel!=='CONSELHO'){alert('Apenas Jorge Zensque pode fazer backup.');return;}
+  var chaves=['users','times','os_list','ponto','disc','treinamentos','promocoes','nrs','avaliacoes','desligamentos','vagas','candidatos','lt4_ia_atividades','lt4_ia_historico'];
+  var backup={versao:'lt4_v11',data:new Date().toISOString(),dados:{}};
+  chaves.forEach(function(k){backup.dados[k]=S.g(k);});
+  var json=JSON.stringify(backup,null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='LogiTrein_BACKUP_'+new Date().toISOString().split('T')[0]+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  alert('Backup completo baixado!\n\nPara salvar no Google Drive:\n1. Acesse drive.google.com\n2. Login: logitreineduca@gmail.com\n3. Arraste o arquivo JSON para a pasta\n\nPara restaurar: botao Importar Backup');
+}
+
+function importarBackup(){
+  if(!CU||CU.nivel!=='CONSELHO'){alert('Apenas Jorge Zensque pode restaurar backup.');return;}
+  var input=document.createElement('input');
+  input.type='file';input.accept='.json';
+  input.onchange=function(e){
+    var file=e.target.files[0];if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        var data=JSON.parse(ev.target.result);
+        if(!data.versao||!data.dados){alert('Arquivo de backup invalido.');return;}
+        if(!confirm('Restaurar backup de '+data.data+'?\n\nATENCAO: Isso vai sobrescrever os dados atuais!'))return;
+        Object.entries(data.dados).forEach(function(e){if(e[1]!==null&&e[1]!==undefined)S.s(e[0],e[1]);});
+        alert('Backup restaurado! Recarregando...');
+        setTimeout(function(){location.reload();},800);
+      }catch(err){alert('Erro ao ler backup: '+err.message);}
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
 initData();
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'){
     const ls=document.getElementById('login-scr');
-    if(!ls.style.display||ls.style.display==='')doLogin();
+    if(ls&&(ls.style.display===''||ls.style.display==='flex'))doLogin();
+    if(document.getElementById('rh-gate').classList.contains('on'))verificarRH();
+    if(document.getElementById('cred-gate')&&document.getElementById('cred-gate').style.display==='flex')verificarCred();
+    if(document.getElementById('educador-gate-overlay')&&document.getElementById('educador-gate-overlay').style.display==='flex')verificarEducador();
   }
 });
+
 </script>
 </body>
 </html>
