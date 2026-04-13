@@ -287,17 +287,11 @@ tr:last-child td{border-bottom:none;}
     <button onclick="pedirSenhaCredenciais()" style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);border-radius:var(--rs);padding:6px 14px;color:var(--y);font-family:var(--sans);font-size:11px;cursor:pointer;transition:all .15s;" onmouseover="this.style.background='rgba(251,191,36,.15)'" onmouseout="this.style.background='rgba(251,191,36,.08)'">
       🔑 Credenciais (admin)
     </button>
-    <button onclick="resetarSistema()" style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);border-radius:var(--rs);padding:6px 14px;color:var(--r);font-family:var(--sans);font-size:11px;cursor:pointer;transition:all .15s;" onmouseover="this.style.background='rgba(248,113,113,.12)'" onmouseout="this.style.background='rgba(248,113,113,.06)'">
-      ↺ Redefinir Líderes
-    </button>
+
   </div>
   <div id="lhints-box" style="display:none;margin-top:10px">
-    <div class="lhints">
-      <strong>jorge.zensque</strong> / master2026 · Conselho Deliberativo<br>
-      <strong>lider.a</strong> / lid123 · Líder Time A<br>
-      <strong>lider.b</strong> / lid123 · Líder Time B<br>
-      <strong>lider.c</strong> / lid123 · Líder Time C<br>
-      Operadores cadastrados pelos líderes · senha: op123
+    <div class="lhints" id="lhints-content">
+      <!-- conteúdo carregado dinamicamente após autenticação -->
     </div>
   </div>
   <!-- Mini modal senha credenciais -->
@@ -1312,7 +1306,7 @@ function doLogin(){
   if(opMatch){CU={key:opMatch[0],...opMatch[1]};startApp();return;}
   const errEl=document.getElementById('lerr');
   errEl.style.display='block';
-  errEl.textContent='Login inválido. Use: lider.a / lid123 ou jorge.zensque / master2026';
+  errEl.textContent='Usuario ou senha incorretos. Contate o coordenador do projeto.';
   setTimeout(()=>{errEl.style.display='none';errEl.textContent='Usuário ou senha incorretos.';},5000);
 }
 
@@ -2183,7 +2177,21 @@ function verificarCred(){
   if(v==='master2026'){
     document.getElementById('cred-gate').style.display='none';
     const b=document.getElementById('lhints-box');
-    if(b){b.style.display='block';}
+    if(b){
+      b.style.display='block';
+      // Injetar credenciais dinamicamente — nunca ficam no HTML
+      var users=S.g('users')||{};
+      var linhas='';
+      var ordem=['jorge.zensque','gestor','lider.a','lider.b','lider.c'];
+      var labels={'CONSELHO':'Conselho Deliberativo','GESTOR':'CEO / Gestor','LIDER':'Lider de Equipe','OPERACIONAL':'Operador'};
+      ordem.forEach(function(k){
+        if(users[k]){linhas+='<strong>'+k+'</strong> / '+users[k].pass+' &nbsp;·&nbsp; '+(labels[users[k].nivel]||users[k].nivel)+'<br>';}
+      });
+      var ops=Object.entries(users).filter(function(e){return e[1].nivel==='OPERACIONAL';});
+      if(ops.length){linhas+='<br><strong>Operadores:</strong> '+ops.slice(0,3).map(function(e){return e[0];}).join(', ')+(ops.length>3?' e mais '+(ops.length-3):'')+'<br>Senha padrão: op123';}
+      var el=document.getElementById('lhints-content');
+      if(el)el.innerHTML=linhas||'Nenhum usuario cadastrado ainda.';
+    }
   } else {
     document.getElementById('cred-err').style.display='block';
     document.getElementById('cred-pass').value='';
@@ -2193,44 +2201,24 @@ function verificarCred(){
 }
 
 function resetarSistema(){
-  const conf=confirm(
-    'Redefinir líderes e times padrão?\n\n'+
-    'Isso vai:\n'+
-    '• Recriar lider.a / lider.b / lider.c com senha lid123\n'+
-    '• Recriar jorge.zensque com senha master2026\n'+
-    '• Recriar os Times A, B, C, D\n'+
-    '• NÃO apaga operadores cadastrados\n\n'+
-    'Confirmar?'
-  );
-  if(!conf)return;
-  // Recriar usuários padrão
-  const users=S.g('users')||{};
-  const padroes={
+  // Só pode ser chamado internamente — não exposto na tela de login
+  var users=S.g('users')||{};
+  var padroes={
     'jorge.zensque':{pass:'master2026',nome:'Jorge Zensque',nivel:'CONSELHO',cargo:'Conselho Deliberativo',time:null,setor:'conselho',meta:0,admissao:'2026-01-01'},
     'gestor':{pass:'gest123',nome:'Gestor Geral',nivel:'GESTOR',cargo:'CEO / Gestor',time:null,setor:'gestao',meta:0,admissao:'2026-01-01'},
-    'lider.a':{pass:'lid123',nome:'Líder Time A',nivel:'LIDER',cargo:'Líder de Equipe',time:'ta',setor:'picking',meta:0,admissao:'2026-01-05'},
-    'lider.b':{pass:'lid123',nome:'Líder Time B',nivel:'LIDER',cargo:'Líder de Equipe',time:'tb',setor:'embalagem',meta:0,admissao:'2026-01-05'},
-    'lider.c':{pass:'lid123',nome:'Líder Time C',nivel:'LIDER',cargo:'Líder de Equipe',time:'tc',setor:'expedicao',meta:0,admissao:'2026-01-05'},
+    'lider.a':{pass:'lid123',nome:'Lider Time A',nivel:'LIDER',cargo:'Lider de Equipe',time:'ta',setor:'picking',meta:0,admissao:'2026-01-05'},
+    'lider.b':{pass:'lid123',nome:'Lider Time B',nivel:'LIDER',cargo:'Lider de Equipe',time:'tb',setor:'embalagem',meta:0,admissao:'2026-01-05'},
+    'lider.c':{pass:'lid123',nome:'Lider Time C',nivel:'LIDER',cargo:'Lider de Equipe',time:'tc',setor:'expedicao',meta:0,admissao:'2026-01-05'},
   };
-  // Sobrescrever padrões sempre, preservar operadores
-  Object.entries(padroes).forEach(([k,v])=>{users[k]=v;});
+  Object.entries(padroes).forEach(function(e){users[e[0]]=e[1];});
   S.s('users',users);
-  // Recriar times padrão se foram apagados
-  const times=S.g('times')||{};
-  const timesPad={
-    'ta':{nome:'Time A',setor:'Separação / Picking',lider:'Líder Time A',cor:'#38bdf8'},
-    'tb':{nome:'Time B',setor:'Conferência',lider:'Líder Time B',cor:'#34d399'},
-    'tc':{nome:'Time C',setor:'Embalagem',lider:'Líder Time C',cor:'#fb923c'},
-    'td':{nome:'Time D',setor:'Expedição',lider:'',cor:'#c084fc'},
-  };
-  Object.entries(timesPad).forEach(([k,v])=>{if(!times[k])times[k]=v;});
+  var times=S.g('times')||{};
+  var tp={'ta':{nome:'Time A',setor:'Separacao / Picking',lider:'Lider Time A',cor:'#38bdf8'},'tb':{nome:'Time B',setor:'Conferencia',lider:'Lider Time B',cor:'#34d399'},'tc':{nome:'Time C',setor:'Embalagem',lider:'Lider Time C',cor:'#fb923c'},'td':{nome:'Time D',setor:'Expedicao',lider:'',cor:'#c084fc'}};
+  Object.entries(tp).forEach(function(e){if(!times[e[0]])times[e[0]]=e[1];});
   S.s('times',times);
-  alert('✓ Líderes e times redefinidos!\n\nAgora use:\nlider.a / lid123\nlider.b / lid123\nlider.c / lid123\njorge.zensque / master2026');
+  alert('Lideres e times redefinidos com sucesso!');
 }
 
-// ══════════════════════════════════════════════════════════════
-// FILTRAR TABS RH POR NÍVEL
-// ══════════════════════════════════════════════════════════════
 function filtrarTabsRH(){
   if(!CU) return;
   const nv=CU.nivel.toLowerCase();
