@@ -2,12 +2,37 @@ import streamlit as st
 import streamlit.components.v1 as components
 import os
 
-# 1. CONFIGURAÇÃO DA PÁGINA (MODO AMPLO)
+# 1. CONFIGURAÇÃO DA PÁGINA (MODO AMPLO) - DEVE SER O PRIMEIRO
 st.set_page_config(
     page_title='LogiTrein 4.0 - Sistema de Gestão', 
     layout='wide', 
-    initial_sidebar_state='collapsed'
+    initial_sidebar_state='collapsed',
+    page_icon="🚚"
 )
+
+# --- INÍCIO DA TRAVA DE ACESSO ---
+def check_password():
+    """Retorna True se a senha estiver correta."""
+    if "password_correct" not in st.session_state:
+        # Tela de login centralizada
+        st.markdown("<h1 style='text-align: center;'>🔒 Acesso Restrito</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center;'>LogiTrein 4.0 - Fundação Projeto Pescar</p>", unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns([1,2,1])
+        with col2:
+            password = st.text_input("Digite a senha de acesso", type="password")
+            if st.button("Entrar no Sistema"):
+                if password == "KENERSON2026": # Mude a senha aqui se quiser
+                    st.session_state["password_correct"] = True
+                    st.rerun()
+                else:
+                    st.error("🚫 Senha incorreta!")
+        return False
+    return True
+
+if not check_password():
+    st.stop() # Trava o código aqui até digitar a senha
+# --- FIM DA TRAVA DE ACESSO ---
 
 # 2. BLINDAGEM VISUAL (ESCONDE MENUS E ZERA ESPAÇOS BRANCOS)
 st.markdown("""
@@ -21,7 +46,6 @@ st.markdown("""
             padding-left: 0rem !important;
             padding-right: 0rem !important;
         }
-        /* Ajuste fino para o expander de senhas não empurrar o sistema */
         .stExpander {
             margin: 10px 20px;
         }
@@ -32,7 +56,6 @@ st.markdown("""
 current_dir = os.path.dirname(os.path.abspath(__file__))
 html_file = None
 
-# Procura qualquer arquivo que termine com .html na pasta
 for f in os.listdir(current_dir):
     if f.lower().endswith('.html'):
         html_file = os.path.join(current_dir, f)
@@ -44,11 +67,10 @@ if html_file:
         with open(html_file, 'r', encoding='utf-8') as f:
             html_data = f.read()
         
-        # Renderiza o sistema (ajuste o height se precisar de mais espaço)
+        # Renderiza o sistema
         components.html(html_data, height=900, scrolling=True)
         
         # 5. GAVETA DE SEGURANÇA (RESTRITO AO JORGE)
-        # Isso fica lá no final da página, bem discreto.
         with st.expander("🔑 ÁREA DO EDUCADOR (Consultar Acessos)"):
             st.warning("⚠️ Jovens: Acesso restrito ao coordenador do projeto.")
             st.markdown("""
@@ -66,4 +88,4 @@ if html_file:
         st.error(f"Erro ao ler o arquivo HTML: {e}")
 else:
     st.error("❌ ERRO: Nenhum arquivo .html foi encontrado no seu GitHub!")
-    st.info("Certifique se você subiu o arquivo 'logitrein ULTIMA REVISÃO .html' corretamente.")
+    st.info("Certifique se você subiu o arquivo '.html' corretamente.")
