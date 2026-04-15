@@ -352,6 +352,8 @@ tr:last-child td{border-bottom:none;}
 
   <div class="sb-bottom">
     <button class="btn sec sm" style="width:100%;margin-bottom:6px" id="sb-rh-btn" onclick="abrirRH()">🏢 Módulo RH →</button>
+    <button class="btn sm" id="sb-dp-btn" onclick="abrirDP()" style="width:100%;margin-bottom:6px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);color:var(--y);display:none;">💼 Dept. Pessoal</button>
+    <button class="btn sm" id="sb-dp-btn" onclick="abrirDP()" style="width:100%;margin-bottom:6px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--y);display:none;">💼 Depto. Pessoal →</button>
     <button class="btn sm" id="sb-edu-btn" onclick="abrirAreaEducador()" style="width:100%;margin-bottom:6px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:var(--y);display:none;">🗝️ Área do Educador</button>
     <button class="btn da sm" style="width:100%" onclick="sair()">Sair</button>
   </div>
@@ -783,6 +785,133 @@ tr:last-child td{border-bottom:none;}
     </div>
   </div>
 
+
+<!-- ══════ VIEW: DEPARTAMENTO PESSOAL ══════ -->
+<div class="view" id="v-dp">
+  <div class="ph">
+    <h1 style="color:var(--y)">💼 Departamento Pessoal</h1>
+    <div class="ps">Folha de pagamento, contratos, feriados e conformidade CLT</div>
+  </div>
+
+  <!-- Gate de acesso DP -->
+  <div id="dp-bloqueio" style="display:none;text-align:center;padding:60px 20px;">
+    <div style="font-size:48px;margin-bottom:16px">🔒</div>
+    <div style="font-size:18px;font-weight:700;color:var(--r);margin-bottom:8px">Acesso Restrito</div>
+    <div style="font-size:13px;color:var(--mu)">Apenas <strong style="color:var(--tx)">Jorge Zensque</strong> e <strong style="color:var(--tx)">Coordenador de DP</strong> têm acesso.</div>
+  </div>
+
+  <!-- Conteúdo DP -->
+  <div id="dp-conteudo">
+    <div class="tabs" id="dp-tabs">
+      <button class="tab on" onclick="dpTab('dashboard',this)">📊 Dashboard</button>
+      <button class="tab" onclick="dpTab('salarios',this)">💰 Salários</button>
+      <button class="tab" onclick="dpTab('folha',this)">📋 Folha de Pagamento</button>
+      <button class="tab" onclick="dpTab('feriados',this)">📅 Feriados</button>
+      <button class="tab" onclick="dpTab('contratos',this)">📄 Contratos</button>
+      <button class="tab" onclick="dpTab('relatorio',this)">📈 Relatório</button>
+    </div>
+
+    <!-- DASHBOARD DP -->
+    <div id="dp-tab-dashboard">
+      <div class="sg" style="margin-bottom:12px">
+        <div class="sc y"><div class="l">Total Folha</div><div class="v" id="dp-total-folha">R$ 0</div><div class="d">este mês</div></div>
+        <div class="sc g"><div class="l">Funcionários</div><div class="v" id="dp-total-func">0</div><div class="d">ativos</div></div>
+        <div class="sc r"><div class="l">Faltas Injust.</div><div class="v" id="dp-total-faltas">0</div><div class="d">este mês</div></div>
+        <div class="sc a"><div class="l">Horas Extras</div><div class="v" id="dp-total-he">0h</div><div class="d">este mês</div></div>
+      </div>
+      <div class="card">
+        <div class="ch3">Resumo da Última Folha Fechada</div>
+        <div id="dp-resumo-folha"></div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--y);margin-top:10px">
+        <div class="ch3" style="color:var(--y)">⚠ Pendências do Mês</div>
+        <div id="dp-pendencias"></div>
+      </div>
+    </div>
+
+    <!-- SALÁRIOS -->
+    <div id="dp-tab-salarios" style="display:none">
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <button class="btn pr" onclick="abrirModal('mod-dp-salario')">+ Definir Salário</button>
+        <button class="btn sec" onclick="aplicarSalarioMinimo()">↑ Aplicar Salário Mínimo (R$ 1.412)</button>
+      </div>
+      <div class="card">
+        <div class="ch3">Tabela de Salários</div>
+        <div class="tw">
+          <table id="dp-tabela-salarios">
+            <thead><tr><th>Funcionário</th><th>Cargo</th><th>Salário Base</th><th>Carga Horária</th><th>Dependentes</th><th>INSS Est.</th><th>Líquido Est.</th><th>Ação</th></tr></thead>
+            <tbody id="dp-salarios-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOLHA DE PAGAMENTO -->
+    <div id="dp-tab-folha" style="display:none">
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:flex-end">
+        <div class="ff" style="margin:0;flex:0 0 auto">
+          <label style="font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Mês de Referência</label>
+          <select id="dp-mes-sel" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rs);padding:9px 11px;color:var(--tx);font-family:var(--sans);font-size:13px;outline:none;">
+            <option value="04/2026">Abril/2026</option>
+            <option value="03/2026">Março/2026</option>
+            <option value="02/2026">Fevereiro/2026</option>
+            <option value="01/2026">Janeiro/2026</option>
+          </select>
+        </div>
+        <button class="btn warn" onclick="calcularFolhaMes()">⚙ Calcular Folha</button>
+        <button class="btn gr" id="btn-fechar-folha" onclick="fecharFolhaMes()" style="display:none">✓ Fechar Folha</button>
+        <button class="btn sec" onclick="exportarFolhaCSV()">📊 Exportar CSV</button>
+      </div>
+      <div class="al info" id="dp-folha-msg" style="display:none"></div>
+      <div id="dp-folha-content"></div>
+    </div>
+
+    <!-- FERIADOS -->
+    <div id="dp-tab-feriados" style="display:none">
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <button class="btn pr" onclick="abrirModal('mod-dp-feriado')">+ Adicionar Feriado</button>
+        <button class="btn sec" onclick="carregarFeriadosNacionais()">↓ Carregar Feriados Nacionais 2026</button>
+      </div>
+      <div class="al info" style="margin-bottom:10px;font-size:12px">
+        <strong>Importante (CLT):</strong> Feriados trabalhados = pagamento em dobro ou folga compensatória. O DP deve cadastrar feriados municipais específicos de Palmas/TO.
+      </div>
+      <div class="card">
+        <div class="ch3">Calendário de Feriados</div>
+        <div id="dp-feriados-list"></div>
+      </div>
+    </div>
+
+    <!-- CONTRATOS -->
+    <div id="dp-tab-contratos" style="display:none">
+      <div style="margin-bottom:14px">
+        <button class="btn pr" onclick="abrirModal('mod-dp-contrato')">+ Novo Contrato</button>
+      </div>
+      <div class="card">
+        <div class="ch3">Contratos Ativos</div>
+        <div id="dp-contratos-list"></div>
+      </div>
+    </div>
+
+    <!-- RELATÓRIO MENSAL -->
+    <div id="dp-tab-relatorio" style="display:none">
+      <div class="sg">
+        <div class="sc g"><div class="l">Salários Brutos</div><div class="v" id="dp-rel-bruto">R$ 0</div></div>
+        <div class="sc r"><div class="l">Total INSS</div><div class="v" id="dp-rel-inss">R$ 0</div></div>
+        <div class="sc y"><div class="l">Total IRRF</div><div class="v" id="dp-rel-irrf">R$ 0</div></div>
+        <div class="sc a"><div class="l">Total Líquido</div><div class="v" id="dp-rel-liq">R$ 0</div></div>
+      </div>
+      <div class="card">
+        <div class="ch3">Encargos Patronais (estimativa)</div>
+        <div id="dp-encargos"></div>
+      </div>
+      <div class="card" style="margin-top:10px">
+        <div class="ch3">Evolução da Folha</div>
+        <div class="ch"><canvas id="dp-chart-folha"></canvas></div>
+      </div>
+    </div>
+  </div><!-- /dp-conteudo -->
+</div><!-- /v-dp -->
+
 </div><!-- /content -->
 </div><!-- /app -->
 
@@ -957,6 +1086,77 @@ tr:last-child td{border-bottom:none;}
   <button class="btn pr" style="width:100%;padding:12px" onclick="salvarAval()">Salvar</button>
 </div></div>
 
+<!-- ═══ MODAIS DEPARTAMENTO PESSOAL ═══ -->
+<div class="ov" id="mod-dp-salario"><div class="mod">
+  <div class="mod-h"><h3>💰 Definir Salário</h3><button class="xbtn" onclick="fecharModal('mod-dp-salario')">✕</button></div>
+  <div class="ff"><label>Funcionário</label><select id="dp-sal-func"></select></div>
+  <div class="fg t">
+    <div class="ff"><label>Salário Base (R$)</label><input id="dp-sal-valor" type="number" min="1412" step="50" value="1412" placeholder="1412.00"></div>
+    <div class="ff"><label>Carga Horária/mês</label><input id="dp-sal-carga" type="number" value="88" placeholder="88h (4h/dia × 22 dias)"></div>
+    <div class="ff"><label>Dependentes (IRRF)</label><input id="dp-sal-dep" type="number" value="0" min="0" max="10"></div>
+    <div class="ff"><label>Vale-Transporte</label><select id="dp-sal-vt"><option value="sim">Sim (desconta 6%)</option><option value="nao">Não</option></select></div>
+  </div>
+  <div style="background:var(--bg3);border-radius:var(--rs);padding:10px;margin-bottom:12px;font-size:12px;" id="dp-sal-preview">
+    <div style="color:var(--mu);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Prévia dos descontos</div>
+    <div id="dp-sal-preview-content" style="color:var(--g)">Preencha o salário para ver</div>
+  </div>
+  <button class="btn gr" style="width:100%;padding:12px" onclick="salvarSalario()">Salvar Salário</button>
+</div></div>
+
+<div class="ov" id="mod-dp-feriado"><div class="mod">
+  <div class="mod-h"><h3>📅 Adicionar Feriado</h3><button class="xbtn" onclick="fecharModal('mod-dp-feriado')">✕</button></div>
+  <div class="fg t">
+    <div class="ff"><label>Data</label><input id="dp-fer-data" type="date"></div>
+    <div class="ff"><label>Tipo</label>
+      <select id="dp-fer-tipo">
+        <option value="nacional">Nacional</option>
+        <option value="estadual">Estadual (TO)</option>
+        <option value="municipal">Municipal (Palmas)</option>
+        <option value="facultativo">Facultativo</option>
+      </select>
+    </div>
+  </div>
+  <div class="ff"><label>Nome do Feriado</label><input id="dp-fer-nome" placeholder="ex: Fundação de Palmas"></div>
+  <button class="btn pr" style="width:100%;padding:12px" onclick="salvarFeriado()">Adicionar</button>
+</div></div>
+
+<div class="ov" id="mod-dp-contrato"><div class="mod">
+  <div class="mod-h"><h3>📄 Novo Contrato</h3><button class="xbtn" onclick="fecharModal('mod-dp-contrato')">✕</button></div>
+  <div class="ff"><label>Funcionário</label><select id="dp-cont-func"></select></div>
+  <div class="ff"><label>Tipo de Contrato</label>
+    <select id="dp-cont-tipo">
+      <option value="indeterminado">Prazo Indeterminado (CLT)</option>
+      <option value="experiencia">Período de Experiência (45+45 dias)</option>
+      <option value="determinado">Prazo Determinado</option>
+      <option value="menor_aprendiz">Menor Aprendiz (14-24 anos)</option>
+      <option value="estagio">Estágio</option>
+    </select>
+  </div>
+  <div class="fg t">
+    <div class="ff"><label>Data de Início</label><input id="dp-cont-inicio" type="date"></div>
+    <div class="ff"><label>Data Fim (se houver)</label><input id="dp-cont-fim" type="date"></div>
+  </div>
+  <div class="ff"><label>Observações</label><textarea id="dp-cont-obs" placeholder="Cláusulas especiais, condições..."></textarea></div>
+  <button class="btn pr" style="width:100%;padding:12px" onclick="salvarContrato()">Registrar Contrato</button>
+</div></div>
+
+<!-- DP GATE — senha de acesso -->
+<div id="dp-gate-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;">
+  <div style="background:var(--card);border:1px solid var(--bdr2);border-radius:var(--rr);padding:28px 24px;width:100%;max-width:360px;text-align:center;">
+    <div style="font-size:32px;margin-bottom:10px">💼</div>
+    <div style="font-size:15px;font-weight:700;margin-bottom:4px">Departamento Pessoal</div>
+    <div style="font-size:11px;color:var(--mu);margin-bottom:16px">Acesso restrito ao Coordenador de DP</div>
+    <input type="password" id="dp-gate-pass" placeholder="Senha do DP"
+      onkeydown="if(event.key==='Enter')verificarDP()"
+      style="width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 12px;color:var(--tx);font-family:var(--sans);font-size:13px;outline:none;margin-bottom:10px;">
+    <div id="dp-gate-err" style="color:var(--r);font-size:11px;margin-bottom:8px;display:none">Senha incorreta.</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="verificarDP()" style="flex:1;background:var(--y);color:#000;border:none;border-radius:var(--rs);padding:10px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer">Acessar</button>
+      <button onclick="document.getElementById('dp-gate-overlay').style.display='none'" style="flex:1;background:transparent;color:var(--mu);border:1px solid var(--bdr2);border-radius:var(--rs);padding:10px;font-family:var(--sans);font-size:13px;cursor:pointer">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ MODAL DESLIGAMENTO ═══ -->
 <div class="ov" id="mod-desligamento"><div class="mod" style="max-width:620px">
   <div class="mod-h">
@@ -1072,6 +1272,7 @@ function garantirUsuariosPadrao(){
     'lider.a':{pass:'lid123',nome:'Líder Time A',nivel:'LIDER',cargo:'Líder de Equipe',time:'ta',setor:'picking',meta:0,admissao:'2026-01-05'},
     'lider.b':{pass:'lid123',nome:'Líder Time B',nivel:'LIDER',cargo:'Líder de Equipe',time:'tb',setor:'embalagem',meta:0,admissao:'2026-01-05'},
     'lider.c':{pass:'lid123',nome:'Líder Time C',nivel:'LIDER',cargo:'Líder de Equipe',time:'tc',setor:'expedicao',meta:0,admissao:'2026-01-05'},
+    'coord.dp':{pass:'dp2026',nome:'Coordenador DP',nivel:'DP',cargo:'Coordenador de DP',time:null,setor:'dp',meta:0,admissao:'2026-01-01'},
   };
   // SEMPRE forçar: cria se não existe, corrige senha/nivel se existe
   Object.entries(padroes).forEach(([k,v])=>{
@@ -1327,6 +1528,8 @@ function startApp(){
   // Mostrar botão Área do Educador apenas para CONSELHO
   const eduBtn=document.getElementById('sb-edu-btn');
   if(eduBtn) eduBtn.style.display=(CU.nivel==='CONSELHO')?'block':'none';
+  const dpBtn=document.getElementById('sb-dp-btn');
+  if(dpBtn) dpBtn.style.display=(CU.nivel==='CONSELHO'||CU.nivel==='GESTOR')?'block':'none';
   // Para operadores: Meu Dia como default, ocultar gerenciamento
   if(CU.nivel==='OPERACIONAL'){
     nav('meudia', document.querySelector('.sb-item[onclick*="meudia"]'));
@@ -1361,7 +1564,7 @@ function startApp(){
 // ══════════════════════════════════════════════════════════════
 // NAVEGAÇÃO
 // ══════════════════════════════════════════════════════════════
-const VIEW_TITLES={dash:'Dashboard',meudia:'Meu Dia',os:'Ordens de Serviço',teams:'Times & Equipes',producao:'Produção ao Vivo',relat:'Relatórios',simul:'Simulador OS',estoque:'Estoque',rh:'Recursos Humanos',pedagogico:'IA Pedagógica'};
+const VIEW_TITLES={dash:'Dashboard',meudia:'Meu Dia',os:'Ordens de Serviço',teams:'Times & Equipes',producao:'Produção ao Vivo',relat:'Relatórios',simul:'Simulador OS',estoque:'Estoque',rh:'Recursos Humanos',pedagogico:'IA Pedagógica',dp:'Departamento Pessoal'};
 function nav(id,btn){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
   const el=document.getElementById('v-'+id);if(el)el.classList.add('on');
@@ -1382,6 +1585,16 @@ function nav(id,btn){
       rhTab('ponto',document.querySelector('#rh-tabs-all .tab:nth-child(2)'));
     } else {
       rhTab('pessoas',document.querySelector('#rh-tabs-all .tab'));
+    }
+  }
+  if(id==='dp'){
+    if(CU&&(CU.nivel==='CONSELHO'||CU.nivel==='DP')){
+      renderDPDashboard();
+    } else {
+      var blk=document.getElementById('dp-bloqueio');
+      var cnt=document.getElementById('dp-conteudo');
+      if(blk)blk.style.display='block';
+      if(cnt)cnt.style.display='none';
     }
   }
   document.getElementById('content').scrollTop=0;
@@ -2209,6 +2422,7 @@ function resetarSistema(){
     'lider.a':{pass:'lid123',nome:'Lider Time A',nivel:'LIDER',cargo:'Lider de Equipe',time:'ta',setor:'picking',meta:0,admissao:'2026-01-05'},
     'lider.b':{pass:'lid123',nome:'Lider Time B',nivel:'LIDER',cargo:'Lider de Equipe',time:'tb',setor:'embalagem',meta:0,admissao:'2026-01-05'},
     'lider.c':{pass:'lid123',nome:'Lider Time C',nivel:'LIDER',cargo:'Lider de Equipe',time:'tc',setor:'expedicao',meta:0,admissao:'2026-01-05'},
+    'coord.dp':{pass:'dp2026',nome:'Coordenador DP',nivel:'DP',cargo:'Coordenador de DP',time:null,setor:'dp',meta:0},
   };
   Object.entries(padroes).forEach(function(e){users[e[0]]=e[1];});
   S.s('users',users);
@@ -3185,6 +3399,7 @@ if(localStorage.getItem('lt4_sys_ver') !== SYS_VERSION){
     'lider.a':{pass:'lid123',nome:'Lider Time A',nivel:'LIDER',cargo:'Lider de Equipe',time:'ta',setor:'picking',meta:0,admissao:'2026-01-05'},
     'lider.b':{pass:'lid123',nome:'Lider Time B',nivel:'LIDER',cargo:'Lider de Equipe',time:'tb',setor:'embalagem',meta:0,admissao:'2026-01-05'},
     'lider.c':{pass:'lid123',nome:'Lider Time C',nivel:'LIDER',cargo:'Lider de Equipe',time:'tc',setor:'expedicao',meta:0,admissao:'2026-01-05'},
+    'coord.dp':{pass:'dp2026',nome:'Coordenador DP',nivel:'DP',cargo:'Coordenador de DP',time:null,setor:'dp',meta:0},
   };
   Object.entries(padroes).forEach(([k,v])=>{ existingUsers[k]=v; });
   localStorage.setItem('lt4_users', JSON.stringify(existingUsers));
@@ -3250,6 +3465,519 @@ function importarBackup(){
   input.click();
 }
 
+
+// ══════════════════════════════════════════════════════════════
+// DEPARTAMENTO PESSOAL — FUNÇÕES COMPLETAS
+// Senha: dp2026 | Acesso: CONSELHO e GESTOR
+// ══════════════════════════════════════════════════════════════
+const DP_PASS = 'dp2026';
+let dpDesbloqueado = false;
+
+// Tabela INSS 2026 (faixas progressivas)
+// ══════════════════════════════════════════════════════════════
+// DEPARTAMENTO PESSOAL — Funções completas
+// ══════════════════════════════════════════════════════════════
+const DP_PASS_KEY = 'dp2026';
+let dpAcessoOk = false;
+
+// ── Controle de Acesso ──
+function abrirDP(){
+  if(!CU){return;}
+  if(CU.nivel==='CONSELHO'||CU.nivel==='DP'){dpAcessoOk=true;nav('dp',document.getElementById('sb-dp-btn'));return;}
+  document.getElementById('dp-gate-pass').value='';
+  document.getElementById('dp-gate-err').style.display='none';
+  document.getElementById('dp-gate-overlay').style.display='flex';
+  setTimeout(function(){document.getElementById('dp-gate-pass').focus();},100);
+}
+function verificarDP(){
+  var v=document.getElementById('dp-gate-pass').value;
+  if(v===DP_PASS_KEY){
+    dpAcessoOk=true;
+    document.getElementById('dp-gate-overlay').style.display='none';
+    nav('dp',document.getElementById('sb-dp-btn'));
+  } else {
+    document.getElementById('dp-gate-err').style.display='block';
+    document.getElementById('dp-gate-pass').value='';
+    setTimeout(function(){document.getElementById('dp-gate-err').style.display='none';},3000);
+  }
+}
+
+// ── Navigation DP ──
+var _dpTab='dashboard';
+function dpTab(id,btn){
+  _dpTab=id;
+  var tabs=['dashboard','salarios','folha','feriados','contratos','relatorio'];
+  tabs.forEach(function(t){
+    var el=document.getElementById('dp-tab-'+t);
+    if(el)el.style.display=(t===id?'block':'none');
+  });
+  document.querySelectorAll('#dp-tabs .tab').forEach(function(t){t.classList.remove('on');});
+  if(btn)btn.classList.add('on');
+  if(id==='dashboard')renderDPDashboard();
+  if(id==='salarios')renderDPSalarios();
+  if(id==='folha')renderDPFolha();
+  if(id==='feriados')renderDPFeriados();
+  if(id==='contratos')renderDPContratos();
+  if(id==='relatorio')renderDPRelatorio();
+}
+
+// ── Cálculos CLT ──
+function calcINSS(sal){
+  var inss=0;
+  var faixas=[
+    {min:0,max:1412.00,aliq:0.075},
+    {min:1412.01,max:2666.68,aliq:0.09},
+    {min:2666.69,max:4000.03,aliq:0.12},
+    {min:4000.04,max:7786.02,aliq:0.14}
+  ];
+  faixas.forEach(function(f){
+    if(sal>f.min){inss+=(Math.min(sal,f.max)-f.min)*f.aliq;}
+  });
+  return Math.min(inss,7786.02*0.14);
+}
+function calcIRRF(base){
+  if(base<=2259.20)return 0;
+  if(base<=2826.65)return base*0.075-169.44;
+  if(base<=3751.05)return base*0.15-381.44;
+  if(base<=4664.68)return base*0.225-662.77;
+  return base*0.275-896.00;
+}
+function moeda(v){return 'R$ '+parseFloat(v||0).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
+
+// ── Dashboard DP ──
+function renderDPDashboard(){
+  var users=S.g('users')||{};
+  var salarios=S.g('dp_salarios')||{};
+  var ponto=S.g('ponto')||[];
+  var ops=Object.entries(users).filter(function(e){return e[1].nivel==='OPERACIONAL';});
+  var totalFolha=0,totalFaltas=0,totalHE=0;
+  ops.forEach(function(e){
+    var sal=(salarios[e[0]]&&salarios[e[0]].salario)||1412;
+    totalFolha+=sal;
+  });
+  document.getElementById('dp-total-folha').textContent=moeda(totalFolha);
+  document.getElementById('dp-total-func').textContent=ops.length;
+  document.getElementById('dp-total-faltas').textContent=totalFaltas;
+  document.getElementById('dp-total-he').textContent=totalHE+'h';
+  
+  var folhas=S.g('dp_folhas')||[];
+  var ultima=folhas[0];
+  var resumoEl=document.getElementById('dp-resumo-folha');
+  if(!ultima){resumoEl.innerHTML='<div style="color:var(--mu);font-size:13px;padding:10px 0">Nenhuma folha fechada ainda. Vá em Folha de Pagamento e calcule o mês.</div>';
+  }else{
+    resumoEl.innerHTML='<div style="font-size:13px;color:var(--a);font-weight:600;margin-bottom:8px">'+ultima.mesAno+' — '+ultima.status+'</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'+
+    ['Bruto:'+moeda(ultima.totalBruto),'INSS:'+moeda(ultima.totalINSS),'Líquido:'+moeda(ultima.totalLiquido)].map(function(s){
+      var p=s.split(':');
+      return '<div style="background:var(--bg3);border-radius:var(--rs);padding:10px;text-align:center"><div style="font-size:10px;color:var(--mu)">'+p[0]+'</div><div style="font-family:var(--mono);font-size:14px;color:var(--g)">'+p[1]+'</div></div>';
+    }).join('')+'</div>';
+  }
+
+  var pend=document.getElementById('dp-pendencias');
+  var items=[];
+  ops.forEach(function(e){if(!salarios[e[0]])items.push(e[1].nome+' — salário não cadastrado');});
+  pend.innerHTML=items.length?items.map(function(i){return '<div style="font-size:12px;color:var(--y);padding:5px 0;border-bottom:1px solid var(--bdr)">⚠ '+i+'</div>';}).join(''):
+    '<div style="font-size:13px;color:var(--g);padding:8px 0">✓ Nenhuma pendência</div>';
+}
+
+// ── Salários ──
+function renderDPSalarios(){
+  var users=S.g('users')||{};
+  var salarios=S.g('dp_salarios')||{};
+  var ops=Object.entries(users).filter(function(e){return e[1].nivel==='OPERACIONAL';});
+  var tbody=document.getElementById('dp-salarios-tbody');
+  if(!ops.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--mu);padding:20px">Nenhum operador cadastrado ainda.</td></tr>';return;}
+  tbody.innerHTML=ops.map(function(e){
+    var k=e[0],u=e[1];
+    var sal=(salarios[k]&&salarios[k].salario)||0;
+    var inss=sal?calcINSS(sal):0;
+    var liq=sal?Math.max(0,sal-inss-(sal>0?sal*0.06:0)):0;
+    var def=!sal;
+    return '<tr style="'+(def?'background:rgba(248,113,113,.04)':'')+'">'
+      +'<td><div style="display:flex;align-items:center;gap:8px"><div class="av" style="width:26px;height:26px;font-size:9px">'+u.nome.split(' ').map(function(x){return x[0];}).slice(0,2).join('')+'</div>'+u.nome+'</div></td>'
+      +'<td>'+u.cargo+'</td>'
+      +'<td style="font-family:var(--mono);color:'+(def?'var(--r)':'var(--g)')+'">'+( sal?moeda(sal):'<span style="color:var(--r)">Não definido</span>')+'</td>'
+      +'<td>'+(salarios[k]&&salarios[k].carga||88)+'h/mês</td>'
+      +'<td>'+(salarios[k]&&salarios[k].dependentes||0)+'</td>'
+      +'<td style="font-family:var(--mono)">'+( sal?moeda(inss):'-')+'</td>'
+      +'<td style="font-family:var(--mono);color:var(--g)">'+( sal?moeda(liq):'-')+'</td>'
+      +'<td><button class="btn sec sm" onclick="editarSalario(\''+k+'\')">Editar</button></td>'
+      +'</tr>';
+  }).join('');
+  
+  // Popular select do modal
+  var sel=document.getElementById('dp-sal-func');
+  if(sel)sel.innerHTML='<option value="">Selecionar...</option>'+ops.map(function(e){return '<option value="'+e[0]+'">'+e[1].nome+'</option>';}).join('');
+}
+
+function editarSalario(uk){
+  var salarios=S.g('dp_salarios')||{};
+  var sel=document.getElementById('dp-sal-func');
+  if(sel)sel.value=uk;
+  var s=salarios[uk]||{};
+  document.getElementById('dp-sal-valor').value=s.salario||1412;
+  document.getElementById('dp-sal-carga').value=s.carga||88;
+  document.getElementById('dp-sal-dep').value=s.dependentes||0;
+  if(document.getElementById('dp-sal-vt'))document.getElementById('dp-sal-vt').value=s.vt||'sim';
+  atualizarPreviewSalario();
+  abrirModal('mod-dp-salario');
+}
+
+function atualizarPreviewSalario(){
+  var sal=parseFloat(document.getElementById('dp-sal-valor').value)||0;
+  var dep=parseInt(document.getElementById('dp-sal-dep').value)||0;
+  if(!sal){document.getElementById('dp-sal-preview-content').textContent='Informe o salário';return;}
+  var inss=calcINSS(sal);
+  var irrf=Math.max(0,calcIRRF(sal-inss-(dep*189.59)));
+  var vt=sal*0.06;
+  var liq=Math.max(0,sal-inss-irrf-vt);
+  document.getElementById('dp-sal-preview-content').innerHTML=
+    'Bruto: <strong>'+moeda(sal)+'</strong><br>'
+    +'INSS: <span style="color:var(--r)">-'+moeda(inss)+'</span> ('+((inss/sal)*100).toFixed(1)+'%)<br>'
+    +'IRRF: <span style="color:var(--r)">-'+moeda(irrf)+'</span><br>'
+    +'VT: <span style="color:var(--r)">-'+moeda(vt)+'</span><br>'
+    +'<strong style="color:var(--g)">Líquido estimado: '+moeda(liq)+'</strong>';
+}
+if(document.getElementById('dp-sal-valor'))document.getElementById('dp-sal-valor').addEventListener('input',atualizarPreviewSalario);
+
+function salvarSalario(){
+  var uk=document.getElementById('dp-sal-func').value;
+  if(!uk||uk===''){alert('Selecione um funcionário.');return;}
+  var sal={
+    salario:parseFloat(document.getElementById('dp-sal-valor').value)||1412,
+    carga:parseInt(document.getElementById('dp-sal-carga').value)||88,
+    dependentes:parseInt(document.getElementById('dp-sal-dep').value)||0,
+    vt:document.getElementById('dp-sal-vt').value,
+    atualizadoEm:new Date().toISOString().split('T')[0]
+  };
+  var salarios=S.g('dp_salarios')||{};
+  salarios[uk]=sal;
+  S.s('dp_salarios',salarios);
+  fecharModal('mod-dp-salario');
+  renderDPSalarios();
+  renderDPDashboard();
+}
+
+function aplicarSalarioMinimo(){
+  if(!confirm('Aplicar salário mínimo (R$ 1.412,00) para todos os funcionários SEM salário definido?'))return;
+  var users=S.g('users')||{};
+  var salarios=S.g('dp_salarios')||{};
+  var count=0;
+  Object.keys(users).forEach(function(k){
+    if(users[k].nivel==='OPERACIONAL'&&!salarios[k]){
+      salarios[k]={salario:1412,carga:88,dependentes:0,vt:'sim',atualizadoEm:new Date().toISOString().split('T')[0]};
+      count++;
+    }
+  });
+  S.s('dp_salarios',salarios);
+  alert(count+' funcionário(s) receberam salário mínimo.');
+  renderDPSalarios();
+}
+
+// ── Folha de Pagamento ──
+var _folhaCalculada=null;
+function calcularFolhaMes(){
+  var mesAno=document.getElementById('dp-mes-sel').value;
+  if(!mesAno){alert('Selecione o mês.');return;}
+  var users=S.g('users')||{};
+  var salarios=S.g('dp_salarios')||{};
+  var ponto=S.g('ponto')||[];
+  var feriados=S.g('dp_feriados')||[];
+  var ops=Object.entries(users).filter(function(e){return e[1].nivel==='OPERACIONAL';});
+  var partes=mesAno.split('/');
+  var mesN=parseInt(partes[0]),anoN=parseInt(partes[1]);
+  var diasNoMes=new Date(anoN,mesN,0).getDate();
+  var diasUteis=0;
+  for(var d=1;d<=diasNoMes;d++){
+    var dt=new Date(anoN,mesN-1,d);
+    var ds=dt.toISOString().split('T')[0];
+    var dow=dt.getDay();
+    if(dow!==0&&dow!==6&&!feriados.some(function(f){return f.data===ds;}))diasUteis++;
+  }
+
+  var linhas=ops.map(function(e){
+    var k=e[0],u=e[1];
+    var sal_cfg=salarios[k]||{salario:1412,carga:88,dependentes:0,vt:'sim'};
+    var salBruto=sal_cfg.salario||1412;
+    var salDia=salBruto/diasUteis;
+    var prefixo=anoN+'-'+(mesN<10?'0':'')+mesN;
+    var regs=ponto.filter(function(p){return p.func===u.nome&&p.data&&p.data.startsWith(prefixo);});
+    var diasTrab=regs.filter(function(r){return r.status!=='falta'&&r.total;}).length;
+    var faltas=regs.filter(function(r){return r.status==='falta';}).length;
+    var horas_extras=0;
+    regs.forEach(function(r){
+      if(r.total){
+        var hTrab=r.total/60;
+        var hEsp=sal_cfg.carga/diasUteis;
+        if(hTrab>hEsp+0.17)horas_extras+=hTrab-hEsp;
+      }
+    });
+    var descFalta=faltas*salDia;
+    var descDSR=faltas>0?Math.floor(faltas/5)*salDia:0;
+    var extrasVal=horas_extras*(salBruto/sal_cfg.carga)*1.5;
+    var totalBruto=salBruto-descFalta-descDSR+extrasVal;
+    var inss=calcINSS(totalBruto);
+    var irrf=Math.max(0,calcIRRF(totalBruto-inss-(sal_cfg.dependentes*189.59)));
+    var vt=sal_cfg.vt!=='nao'?Math.min(totalBruto*0.06,totalBruto*0.06):0;
+    var totalDesc=inss+irrf+vt;
+    var liquido=Math.max(0,totalBruto-totalDesc);
+    return {uk:k,nome:u.nome,cargo:u.cargo,salBruto:salBruto,diasUteis:diasUteis,diasTrab:diasTrab,faltas:faltas,
+      descFalta:Math.round(descFalta*100)/100,descDSR:Math.round(descDSR*100)/100,
+      extrasVal:Math.round(extrasVal*100)/100,totalBruto:Math.round(totalBruto*100)/100,
+      inss:Math.round(inss*100)/100,irrf:Math.round(irrf*100)/100,vt:Math.round(vt*100)/100,
+      totalDesc:Math.round(totalDesc*100)/100,liquido:Math.round(liquido*100)/100};
+  });
+
+  _folhaCalculada={mesAno:mesAno,linhas:linhas,calculadoEm:new Date().toISOString()};
+  var msg=document.getElementById('dp-folha-msg');
+  msg.style.display='block';msg.className='al ok';
+  msg.textContent='Folha calculada para '+mesAno+'. Verifique os valores e clique em "Fechar Folha" para confirmar.';
+  setTimeout(function(){msg.style.display='none';},5000);
+  document.getElementById('btn-fechar-folha').style.display='inline-flex';
+  renderFolhaTabela(linhas);
+}
+
+function renderFolhaTabela(linhas){
+  var totalBruto=linhas.reduce(function(a,l){return a+l.totalBruto;},0);
+  var totalLiq=linhas.reduce(function(a,l){return a+l.liquido;},0);
+  var totalINSS=linhas.reduce(function(a,l){return a+l.inss;},0);
+  var totalIRRF=linhas.reduce(function(a,l){return a+l.irrf;},0);
+  var html='<div class="tw"><table><thead><tr>'
+    +'<th>Funcionário</th><th>Cargo</th><th>Dias Trab.</th><th>Faltas</th>'
+    +'<th>HE (50%)</th><th>Salário Bruto</th><th>INSS</th><th>IRRF</th><th>VT</th><th>Total Desc.</th>'
+    +'<th style="color:var(--g)">LÍQUIDO</th>'
+    +'</tr></thead><tbody>';
+  linhas.forEach(function(l){
+    html+='<tr>'
+      +'<td><div style="display:flex;align-items:center;gap:6px"><div class="av" style="width:24px;height:24px;font-size:9px">'+l.nome.split(' ').map(function(x){return x[0];}).slice(0,2).join('')+'</div>'+l.nome+'</div></td>'
+      +'<td style="font-size:11px;color:var(--mu)">'+l.cargo+'</td>'
+      +'<td style="text-align:center">'+l.diasTrab+'/'+l.diasUteis+'</td>'
+      +'<td style="text-align:center;color:'+(l.faltas>0?'var(--r)':'var(--mu)')+'">'+l.faltas+'</td>'
+      +'<td style="font-family:var(--mono);font-size:11px">'+( l.extrasVal>0?moeda(l.extrasVal):'-')+'</td>'
+      +'<td style="font-family:var(--mono)">'+moeda(l.totalBruto)+'</td>'
+      +'<td style="font-family:var(--mono);color:var(--r)">-'+moeda(l.inss)+'</td>'
+      +'<td style="font-family:var(--mono);color:var(--r)">-'+moeda(l.irrf)+'</td>'
+      +'<td style="font-family:var(--mono);color:var(--r)">-'+moeda(l.vt)+'</td>'
+      +'<td style="font-family:var(--mono);color:var(--r)">-'+moeda(l.totalDesc)+'</td>'
+      +'<td style="font-family:var(--mono);color:var(--g);font-weight:600">'+moeda(l.liquido)+'</td>'
+      +'</tr>';
+  });
+  html+='<tr style="background:var(--bg3);font-weight:600">'
+    +'<td colspan="5" style="font-size:12px;color:var(--mu)">TOTAIS</td>'
+    +'<td style="font-family:var(--mono)">'+moeda(totalBruto)+'</td>'
+    +'<td style="font-family:var(--mono);color:var(--r)">-'+moeda(totalINSS)+'</td>'
+    +'<td style="font-family:var(--mono);color:var(--r)">-'+moeda(totalIRRF)+'</td>'
+    +'<td></td><td></td>'
+    +'<td style="font-family:var(--mono);color:var(--g)">'+moeda(totalLiq)+'</td>'
+    +'</tr>';
+  html+='</tbody></table></div>';
+  document.getElementById('dp-folha-content').innerHTML=html;
+}
+
+function renderDPFolha(){
+  document.getElementById('dp-folha-content').innerHTML='<div style="color:var(--mu);font-size:13px;text-align:center;padding:30px">Selecione o mês e clique em Calcular Folha.</div>';
+  document.getElementById('btn-fechar-folha').style.display='none';
+  // Popular meses
+  var sel=document.getElementById('dp-mes-sel');
+  var opts='';
+  var hoje=new Date();
+  for(var i=0;i<6;i++){
+    var d=new Date(hoje.getFullYear(),hoje.getMonth()-i,1);
+    var m=String(d.getMonth()+1).padStart(2,'0');
+    var a=d.getFullYear();
+    var label=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][d.getMonth()]+'/'+a;
+    opts+='<option value="'+m+'/'+a+'">'+label+'</option>';
+  }
+  if(sel)sel.innerHTML=opts;
+}
+
+function fecharFolhaMes(){
+  if(!_folhaCalculada){alert('Calcule a folha primeiro.');return;}
+  if(!confirm('Fechar folha de '+_folhaCalculada.mesAno+'? Esta ação confirma o pagamento.'))return;
+  var folhas=S.g('dp_folhas')||[];
+  var totalBruto=_folhaCalculada.linhas.reduce(function(a,l){return a+l.totalBruto;},0);
+  var totalINSS=_folhaCalculada.linhas.reduce(function(a,l){return a+l.inss;},0);
+  var totalLiquido=_folhaCalculada.linhas.reduce(function(a,l){return a+l.liquido;},0);
+  folhas.unshift({
+    id:'fp'+Date.now(),
+    mesAno:_folhaCalculada.mesAno,
+    status:'Fechada',
+    fechadaEm:new Date().toISOString(),
+    totalBruto:Math.round(totalBruto*100)/100,
+    totalINSS:Math.round(totalINSS*100)/100,
+    totalLiquido:Math.round(totalLiquido*100)/100,
+    linhas:_folhaCalculada.linhas
+  });
+  S.s('dp_folhas',folhas);
+  _folhaCalculada=null;
+  document.getElementById('btn-fechar-folha').style.display='none';
+  alert('Folha fechada e salva com sucesso!');
+  renderDPDashboard();
+}
+
+function exportarFolhaCSV(){
+  if(!_folhaCalculada&&!((S.g('dp_folhas')||[])[0])){alert('Nenhuma folha calculada.');return;}
+  var linhas=_folhaCalculada?_folhaCalculada.linhas:(S.g('dp_folhas')||[])[0].linhas;
+  var mes=_folhaCalculada?_folhaCalculada.mesAno:(S.g('dp_folhas')||[])[0].mesAno;
+  var NL='\r\n';
+  var csv='Folha de Pagamento — '+mes+NL+NL;
+  csv+='Funcionario,Cargo,Dias Trab,Faltas,H.Extra,Sal.Bruto,INSS,IRRF,VT,Total Desc,Liquido'+NL;
+  linhas.forEach(function(l){
+    csv+='"'+l.nome+'","'+l.cargo+'",'+l.diasTrab+','+l.faltas+','+l.extrasVal.toFixed(2)+','+l.totalBruto.toFixed(2)+','+l.inss.toFixed(2)+','+l.irrf.toFixed(2)+','+l.vt.toFixed(2)+','+l.totalDesc.toFixed(2)+','+l.liquido.toFixed(2)+NL;
+  });
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download='Folha_'+mes.replace('/','_')+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+// ── Feriados ──
+function renderDPFeriados(){
+  var feriados=S.g('dp_feriados')||[];
+  var el=document.getElementById('dp-feriados-list');
+  if(!feriados.length){el.innerHTML='<div style="color:var(--mu);font-size:13px;text-align:center;padding:20px">Nenhum feriado cadastrado. Use o botão + ou carregue os nacionais.</div>';return;}
+  var TIPO_C={nacional:'var(--r)',estadual:'var(--a)',municipal:'var(--g)',facultativo:'var(--mu)'};
+  el.innerHTML=feriados.sort(function(a,b){return a.data.localeCompare(b.data);}).map(function(f){
+    return '<div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--bdr)">'
+      +'<div style="font-family:var(--mono);font-size:12px;color:var(--mu);min-width:90px">'+new Date(f.data+'T12:00').toLocaleDateString('pt-BR')+'</div>'
+      +'<div style="flex:1;font-size:13px;font-weight:500">'+f.nome+'</div>'
+      +'<span class="b" style="color:'+TIPO_C[f.tipo]+';background:rgba(0,0,0,.2);font-size:10px">'+f.tipo+'</span>'
+      +'<button onclick="excluirFeriado(\''+f.data+'\')" style="background:none;border:none;color:var(--r);cursor:pointer;font-size:13px">🗑</button>'
+      +'</div>';
+  }).join('');
+}
+function salvarFeriado(){
+  var data=document.getElementById('dp-fer-data').value;
+  var nome=document.getElementById('dp-fer-nome').value.trim();
+  var tipo=document.getElementById('dp-fer-tipo').value;
+  if(!data||!nome){alert('Preencha data e nome.');return;}
+  var feriados=S.g('dp_feriados')||[];
+  if(feriados.some(function(f){return f.data===data;})){alert('Feriado já cadastrado nesta data.');return;}
+  feriados.push({data:data,nome:nome,tipo:tipo});
+  S.s('dp_feriados',feriados);fecharModal('mod-dp-feriado');renderDPFeriados();
+}
+function excluirFeriado(data){
+  if(!confirm('Remover este feriado?'))return;
+  var f=S.g('dp_feriados')||[];
+  S.s('dp_feriados',f.filter(function(x){return x.data!==data;}));renderDPFeriados();
+}
+function carregarFeriadosNacionais(){
+  var nacionais=[
+    {data:'2026-01-01',nome:'Confraternização Universal',tipo:'nacional'},
+    {data:'2026-02-16',nome:'Carnaval',tipo:'nacional'},
+    {data:'2026-02-17',nome:'Carnaval',tipo:'nacional'},
+    {data:'2026-04-02',nome:'Semana Santa',tipo:'nacional'},
+    {data:'2026-04-03',nome:'Paixão de Cristo',tipo:'nacional'},
+    {data:'2026-04-21',nome:'Tiradentes',tipo:'nacional'},
+    {data:'2026-05-01',nome:'Dia do Trabalho',tipo:'nacional'},
+    {data:'2026-06-04',nome:'Corpus Christi',tipo:'nacional'},
+    {data:'2026-09-07',nome:'Independência do Brasil',tipo:'nacional'},
+    {data:'2026-10-12',nome:'Nossa Sra. Aparecida',tipo:'nacional'},
+    {data:'2026-11-02',nome:'Finados',tipo:'nacional'},
+    {data:'2026-11-15',nome:'Proclamação da República',tipo:'nacional'},
+    {data:'2026-11-20',nome:'Consciência Negra',tipo:'nacional'},
+    {data:'2026-12-25',nome:'Natal',tipo:'nacional'},
+    {data:'2026-05-18',nome:'Fundação de Palmas/TO',tipo:'municipal'},
+    {data:'2026-10-05',nome:'Aniversário do Tocantins',tipo:'estadual'},
+  ];
+  var feriados=S.g('dp_feriados')||[];
+  var adicionados=0;
+  nacionais.forEach(function(f){
+    if(!feriados.some(function(x){return x.data===f.data;})){feriados.push(f);adicionados++;}
+  });
+  S.s('dp_feriados',feriados);
+  alert(adicionados+' feriados adicionados (nacionais + Palmas/TO 2026).');
+  renderDPFeriados();
+}
+
+// ── Contratos ──
+function renderDPContratos(){
+  var contratos=S.g('dp_contratos')||[];
+  var el=document.getElementById('dp-contratos-list');
+  if(!contratos.length){el.innerHTML='<div style="color:var(--mu);font-size:13px;text-align:center;padding:20px">Nenhum contrato registrado.</div>';return;}
+  var TIPO_L={indeterminado:'CLT Indeterminado',experiencia:'Período de Experiência',determinado:'Prazo Determinado',menor_aprendiz:'Menor Aprendiz',estagio:'Estágio'};
+  var hoje=new Date().toISOString().split('T')[0];
+  el.innerHTML=contratos.map(function(c){
+    var vencendo=c.fim&&c.fim<new Date(Date.now()+30*24*3600*1000).toISOString().split('T')[0]&&c.fim>=hoje;
+    var vencido=c.fim&&c.fim<hoje;
+    return '<div style="background:var(--bg3);border-left:3px solid '+(vencido?'var(--r)':vencendo?'var(--y)':'var(--g)')+';border-radius:var(--rs);padding:12px;margin-bottom:8px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">'
+      +'<div><div style="font-size:13px;font-weight:600">'+c.func+'</div>'
+      +'<div style="font-size:11px;color:var(--mu);margin-top:2px">'+TIPO_L[c.tipo]+'</div>'
+      +'<div style="font-size:11px;color:var(--mu)">Início: '+new Date(c.inicio+'T12:00').toLocaleDateString('pt-BR')+(c.fim?' · Fim: '+new Date(c.fim+'T12:00').toLocaleDateString('pt-BR'):'')+'</div>'
+      +(c.obs?'<div style="font-size:11px;color:var(--mu);font-style:italic;margin-top:4px">'+c.obs+'</div>':'')
+      +'</div>'
+      +(vencido?'<span class="b r">Vencido</span>':vencendo?'<span class="b y">Vence em breve</span>':'<span class="b g">Ativo</span>')
+      +'</div></div>';
+  }).join('');
+  // Popular select modal
+  var users=S.g('users')||{};
+  var sel=document.getElementById('dp-cont-func');
+  if(sel)sel.innerHTML='<option>Selecionar...</option>'+Object.values(users).filter(function(u){return u.nivel==='OPERACIONAL';}).map(function(u){return '<option>'+u.nome+'</option>';}).join('');
+}
+function salvarContrato(){
+  var func=document.getElementById('dp-cont-func').value;
+  if(!func||func==='Selecionar...'){alert('Selecione um funcionário.');return;}
+  var contratos=S.g('dp_contratos')||[];
+  contratos.unshift({
+    id:'ct'+Date.now(),func:func,
+    tipo:document.getElementById('dp-cont-tipo').value,
+    inicio:document.getElementById('dp-cont-inicio').value,
+    fim:document.getElementById('dp-cont-fim').value,
+    obs:document.getElementById('dp-cont-obs').value,
+    criado:new Date().toISOString().split('T')[0]
+  });
+  S.s('dp_contratos',contratos);fecharModal('mod-dp-contrato');renderDPContratos();
+}
+
+// ── Relatório ──
+function renderDPRelatorio(){
+  var folhas=S.g('dp_folhas')||[];
+  var ultima=folhas[0]||{totalBruto:0,totalINSS:0,totalLiquido:0};
+  document.getElementById('dp-rel-bruto').textContent=moeda(ultima.totalBruto||0);
+  document.getElementById('dp-rel-inss').textContent=moeda(ultima.totalINSS||0);
+  document.getElementById('dp-rel-irrf').textContent=moeda(0);
+  document.getElementById('dp-rel-liq').textContent=moeda(ultima.totalLiquido||0);
+  var bruto=ultima.totalBruto||0;
+  document.getElementById('dp-encargos').innerHTML=
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px">'
+    +[
+      ['INSS Patronal (20%)',moeda(bruto*0.20)],
+      ['FGTS (8%)',moeda(bruto*0.08)],
+      ['RAT/FAP (~1%)',moeda(bruto*0.01)],
+      ['Sistema S (~3.3%)',moeda(bruto*0.033)],
+      ['Total Encargos',moeda(bruto*0.323)],
+      ['Custo Total Empresa',moeda(bruto*1.323)],
+    ].map(function(e){
+      return '<div style="background:var(--bg3);border-radius:var(--rs);padding:10px;text-align:center">'
+        +'<div style="color:var(--mu);font-size:10px;margin-bottom:3px">'+e[0]+'</div>'
+        +'<div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--y)">'+e[1]+'</div>'
+        +'</div>';
+    }).join('')+'</div>';
+  // Gráfico evolução
+  if(folhas.length>1){
+    var labels=folhas.slice(0,6).reverse().map(function(f){return f.mesAno;});
+    var data=folhas.slice(0,6).reverse().map(function(f){return f.totalLiquido||0;});
+    mkChart('dp-chart-folha','line',{
+      labels:labels,
+      datasets:[{label:'Total Líquido',data:data,borderColor:'var(--y)',backgroundColor:'rgba(251,191,36,.1)',fill:true,tension:0.3,pointRadius:3}]
+    },{plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b',callback:function(v){return 'R$'+v.toFixed(0);}}}}});
+  }else{
+    document.getElementById('dp-chart-folha').closest('.ch').innerHTML='<div style="color:var(--mu);text-align:center;padding:30px;font-size:13px">Feche pelo menos 2 folhas para ver a evolução.</div>';
+  }
+}
+
+// ── Mostrar botão DP no startApp (para conselho e DP) ──
+function setupDPBtn(){
+  var btn=document.getElementById('sb-dp-btn');
+  if(!btn||!CU)return;
+  btn.style.display=(CU.nivel==='CONSELHO'||CU.nivel==='DP')?'block':'none';
+}
+
+// ── Navegação DP no nav() ──
+// (adicionado ao VIEW_TITLES)
+
 initData();
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'){
@@ -3262,5 +3990,137 @@ document.addEventListener('keydown',e=>{
 });
 
 </script>
+
+<!-- ══ DEPARTAMENTO PESSOAL — OVERLAY FULLSCREEN ══ -->
+<div id="v-dp-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:400;overflow-y:auto;">
+<div style="max-width:1060px;margin:0 auto;padding:20px 16px 60px;">
+
+  <!-- HEADER -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <div style="font-size:22px;font-weight:700;color:var(--y)">💼 Departamento Pessoal</div>
+      <div style="font-size:12px;color:var(--mu)">Folha de Pagamento · Salários · CLT · Feriados</div>
+    </div>
+    <button onclick="fecharDP()" style="background:rgba(248,113,113,.12);color:var(--r);border:1px solid rgba(248,113,113,.25);border-radius:var(--rs);padding:8px 16px;font-family:var(--sans);font-size:12px;cursor:pointer;font-weight:600;">✕ Fechar DP</button>
+  </div>
+
+  <!-- SENHA GATE DP -->
+  <div id="dp-gate" style="display:flex;align-items:center;justify-content:center;min-height:60vh;">
+    <div style="background:var(--card);border:1px solid var(--bdr2);border-radius:var(--rr);padding:30px 26px;width:100%;max-width:380px;text-align:center;">
+      <div style="font-size:36px;margin-bottom:12px;">💼</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:4px;">Departamento Pessoal</div>
+      <div style="font-size:12px;color:var(--mu);margin-bottom:18px;">Acesso restrito — Coordenação DP</div>
+      <div class="ff"><label>Senha do DP</label>
+        <input type="password" id="dp-pass-in" placeholder="Senha de acesso" onkeydown="if(event.key==='Enter')verificarDP()">
+      </div>
+      <div id="dp-pass-err" style="color:var(--r);font-size:11px;margin-bottom:8px;display:none;">Senha incorreta.</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="verificarDP()" style="flex:1;background:var(--y);color:#000;border:none;border-radius:var(--rs);padding:11px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;">Acessar</button>
+        <button onclick="fecharDP()" style="background:transparent;color:var(--mu);border:1px solid var(--bdr2);border-radius:var(--rs);padding:11px 16px;font-family:var(--sans);font-size:13px;cursor:pointer;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTEÚDO DP (após autenticação) -->
+  <div id="dp-content" style="display:none;">
+
+    <!-- TABS -->
+    <div class="tabs" id="dp-tabs">
+      <button class="tab on" onclick="dpTab('salarios',this)">💰 Salários</button>
+      <button class="tab" onclick="dpTab('folha',this)">📋 Folha de Pagamento</button>
+      <button class="tab" onclick="dpTab('feriados',this)">📅 Feriados</button>
+      <button class="tab" onclick="dpTab('rescisao',this)">🚪 Rescisões</button>
+      <button class="tab" onclick="dpTab('relatorio',this)">📊 Relatório DP</button>
+    </div>
+
+    <!-- ══ TAB: SALÁRIOS ══ -->
+    <div id="dp-salarios">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <div style="font-size:13px;color:var(--mu)">Defina o salário base de cada colaborador. O RH cadastra, o DP valida e coloca na folha.</div>
+        <button class="btn pr sm" onclick="salvarTodosSalarios()">💾 Salvar Todos</button>
+      </div>
+      <div class="card">
+        <div class="ch3">Quadro de Salários</div>
+        <div class="tw"><table id="tabela-salarios">
+          <thead><tr>
+            <th>Funcionário</th><th>Cargo</th><th>Salário Base (R$)</th>
+            <th>VT (R$)</th><th>VR (R$)</th><th>Status DP</th><th>Ação</th>
+          </tr></thead>
+          <tbody id="tbody-salarios"></tbody>
+        </table></div>
+      </div>
+      <div class="card" style="margin-top:10px;">
+        <div class="ch3">Resumo da Folha</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;" id="resumo-folha-grid"></div>
+      </div>
+    </div>
+
+    <!-- ══ TAB: FOLHA DE PAGAMENTO ══ -->
+    <div id="dp-folha" style="display:none;">
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;">
+        <select id="fp-mes" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rs);padding:8px 11px;color:var(--tx);font-family:var(--sans);font-size:12px;outline:none;">
+          <option value="1">Janeiro</option><option value="2">Fevereiro</option>
+          <option value="3">Março</option><option value="4">Abril</option>
+          <option value="5">Maio</option><option value="6">Junho</option>
+          <option value="7">Julho</option><option value="8">Agosto</option>
+          <option value="9">Setembro</option><option value="10">Outubro</option>
+          <option value="11">Novembro</option><option value="12">Dezembro</option>
+        </select>
+        <select id="fp-ano" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rs);padding:8px 11px;color:var(--tx);font-family:var(--sans);font-size:12px;outline:none;">
+          <option>2026</option><option>2027</option><option>2028</option>
+        </select>
+        <button class="btn pr" onclick="gerarFolha()">⚙️ Gerar Folha do Mês</button>
+        <button class="btn sec sm" onclick="exportarFolhaCSV()">📊 Exportar Excel</button>
+      </div>
+      <div class="al info" id="fp-msg" style="display:none;"></div>
+      <div id="fp-resultado"></div>
+    </div>
+
+    <!-- ══ TAB: FERIADOS ══ -->
+    <div id="dp-feriados" style="display:none;">
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <button class="btn pr sm" onclick="abrirAddFeriado()">+ Adicionar Feriado</button>
+        <button class="btn sec sm" onclick="carregarFeriadosNacionais()">↻ Carregar Feriados Nacionais 2026</button>
+      </div>
+      <div class="card">
+        <div class="ch3">Calendário de Feriados</div>
+        <div id="lista-feriados"></div>
+      </div>
+      <!-- Form add feriado -->
+      <div id="add-feriado-form" style="display:none;" class="card">
+        <div class="ch3">Novo Feriado</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:end;">
+          <div class="ff"><label>Data</label><input type="date" id="fer-data"></div>
+          <div class="ff"><label>Descrição</label><input id="fer-desc" placeholder="ex: Feriado Municipal"></div>
+          <div class="ff"><label>Tipo</label>
+            <select id="fer-tipo"><option value="nacional">Nacional</option><option value="estadual">Estadual</option><option value="municipal">Municipal</option></select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn gr sm" onclick="salvarFeriado()">Salvar</button>
+          <button class="btn sec sm" onclick="document.getElementById('add-feriado-form').style.display='none'">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TAB: RESCISÕES ══ -->
+    <div id="dp-rescisao" style="display:none;">
+      <div class="card">
+        <div class="ch3">Histórico de Desligamentos e Verbas</div>
+        <div id="dp-rescisao-lista"></div>
+      </div>
+    </div>
+
+    <!-- ══ TAB: RELATÓRIO DP ══ -->
+    <div id="dp-relatorio" style="display:none;">
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;" id="dp-stats-grid"></div>
+      <div class="card"><div class="ch3">Distribuição Salarial por Cargo</div><div class="ch lg"><canvas id="ch-dp-salarios"></canvas></div></div>
+      <div class="card"><div class="ch3">Encargos x Salários</div><div class="ch"><canvas id="ch-dp-encargos"></canvas></div></div>
+    </div>
+
+  </div><!-- /dp-content -->
+</div>
+</div><!-- /v-dp-overlay -->
+
 </body>
 </html>
