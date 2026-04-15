@@ -22,7 +22,7 @@ def check_password():
         with col2:
             password = st.text_input("Digite a senha de acesso", type="password")
             if st.button("Entrar no Sistema"):
-                if password == "KENERSON2026": # Mude a senha aqui se quiser
+                if password == "master2026": # Mude a senha aqui se quiser
                     st.session_state["password_correct"] = True
                     st.rerun()
                 else:
