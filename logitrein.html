@@ -1437,6 +1437,8 @@ const RH_PASS='rhacesso2026';
 let rhDesbloqueado=false;
 
 function abrirRH(){
+  // DP não acessa RH — vai para DP
+  if(CU&&CU.nivel==='DP'){abrirDP();return;}
   // Jorge, Gestor e Líderes entram direto — sem pedir senha
   if(rhDesbloqueado||(CU&&(CU.nivel==='CONSELHO'||CU.nivel==='GESTOR'||CU.nivel==='LIDER'))){
     rhDesbloqueado=true;
@@ -1529,7 +1531,7 @@ function startApp(){
   const eduBtn=document.getElementById('sb-edu-btn');
   if(eduBtn) eduBtn.style.display=(CU.nivel==='CONSELHO')?'block':'none';
   const dpBtn=document.getElementById('sb-dp-btn');
-  if(dpBtn) dpBtn.style.display=(CU.nivel==='CONSELHO'||CU.nivel==='GESTOR')?'block':'none';
+  if(dpBtn) dpBtn.style.display=(CU.nivel==='CONSELHO'||CU.nivel==='GESTOR'||CU.nivel==='DP')?'block':'none';
   // Para operadores: Meu Dia como default, ocultar gerenciamento
   if(CU.nivel==='OPERACIONAL'){
     nav('meudia', document.querySelector('.sb-item[onclick*="meudia"]'));
@@ -1558,6 +1560,28 @@ function startApp(){
       const iaBtn=document.getElementById('sb-ia-btn');
       if(iaBtn) iaBtn.style.display='none';
     },50);
+  }
+
+  // DP: Ambiente exclusivo — vai direto para Dept. Pessoal, oculta tudo irrelevante
+  if(CU.nivel==='DP'){
+    setTimeout(()=>{
+      // Ocultar seções que DP não precisa
+      const ocultar=['sb-ia-btn','sb-edu-btn','btn-add-func','btn-ed-times','btn-gerar-os','btn-distrib-auto'];
+      ocultar.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+      // Ocultar itens do sidebar desnecessários para DP
+      document.querySelectorAll('.sb-item').forEach(b=>{
+        const oc=b.getAttribute('onclick')||'';
+        // DP vê: dash, producao, teams (somente visualização), dp
+        if(oc.includes('simul')||oc.includes('relat')||oc.includes('os,')||oc.includes('meudia')||oc.includes('estoque')||oc.includes('pedagogico')){
+          b.style.display='none';
+        }
+      });
+      // Ocultar botão RH (DP usa DP, não RH)
+      const rhBtn=document.getElementById('sb-rh-btn');
+      if(rhBtn)rhBtn.style.display='none';
+      // Ir direto para o módulo DP
+      abrirDP();
+    },80);
   }
 }
 
@@ -1589,6 +1613,10 @@ function nav(id,btn){
   }
   if(id==='dp'){
     if(CU&&(CU.nivel==='CONSELHO'||CU.nivel==='DP')){
+      var blk=document.getElementById('dp-bloqueio');
+      var cnt=document.getElementById('dp-conteudo');
+      if(blk)blk.style.display='none';
+      if(cnt)cnt.style.display='block';
       renderDPDashboard();
     } else {
       var blk=document.getElementById('dp-bloqueio');
@@ -2538,6 +2566,10 @@ let iaDesbloqueado=false;
 let iaUltimoTexto='';
 
 function abrirIAPedagogica(){
+  // DP não acessa IA Pedagógica
+  if(CU&&CU.nivel==='DP'){
+    mostrarMsgIA();return;
+  }
   // CONSELHO e GESTOR entram direto
   if(CU&&(CU.nivel==='CONSELHO'||CU.nivel==='GESTOR')){
     iaDesbloqueado=true;
@@ -3483,7 +3515,15 @@ let dpAcessoOk = false;
 // ── Controle de Acesso ──
 function abrirDP(){
   if(!CU){return;}
-  if(CU.nivel==='CONSELHO'||CU.nivel==='DP'){dpAcessoOk=true;nav('dp',document.getElementById('sb-dp-btn'));return;}
+  // CONSELHO e DP entram direto — sem gate de senha (já autenticados no login)
+  if(CU.nivel==='CONSELHO'||CU.nivel==='DP'){
+    dpAcessoOk=true;
+    document.getElementById('dp-bloqueio').style.display='none';
+    document.getElementById('dp-conteudo').style.display='block';
+    nav('dp',document.getElementById('sb-dp-btn'));
+    renderDPDashboard();
+    return;
+  }
   document.getElementById('dp-gate-pass').value='';
   document.getElementById('dp-gate-err').style.display='none';
   document.getElementById('dp-gate-overlay').style.display='flex';
