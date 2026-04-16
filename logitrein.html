@@ -809,6 +809,10 @@ tr:last-child td{border-bottom:none;}
       <button class="tab" onclick="dpTab('feriados',this)">📅 Feriados</button>
       <button class="tab" onclick="dpTab('contratos',this)">📄 Contratos</button>
       <button class="tab" onclick="dpTab('relatorio',this)">📈 Relatório</button>
+      <button class="tab" onclick="dpTab('atestados',this)">🏥 Atestados</button>
+      <button class="tab" onclick="dpTab('documentos',this)">📂 Documentos</button>
+      <button class="tab" onclick="dpTab('checklist',this)">✅ Checklist CLT</button>
+      <button class="tab" onclick="dpTab('consulta',this)">🤖 Consulta IA</button>
     </div>
 
     <!-- DASHBOARD DP -->
@@ -909,6 +913,71 @@ tr:last-child td{border-bottom:none;}
         <div class="ch"><canvas id="dp-chart-folha"></canvas></div>
       </div>
     </div>
+
+    <!-- ═══ ATESTADOS E JUSTIFICATIVAS ═══ -->
+    <div id="dp-tab-atestados" style="display:none">
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <button class="btn pr" onclick="abrirModal('mod-dp-atestado')">+ Registrar Atestado/Justificativa</button>
+        <button class="btn sec" onclick="dpFiltrarAtestados('todos',this)">Todos</button>
+        <button class="btn sec" onclick="dpFiltrarAtestados('pendente',this)">Pendentes</button>
+        <button class="btn sec" onclick="dpFiltrarAtestados('aprovado',this)">Aprovados</button>
+      </div>
+      <div class="al info" style="margin-bottom:12px;font-size:12px">
+        <strong>CLT Art. 473</strong> — Faltas justificadas não geram desconto. Documento deve ser entregue em até 48h após o retorno.
+      </div>
+      <div class="card"><div class="ch3">Registros de Atestados e Justificativas</div><div id="dp-atestados-list"></div></div>
+    </div>
+
+    <!-- ═══ DOCUMENTOS ═══ -->
+    <div id="dp-tab-documentos" style="display:none">
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <button class="btn pr" onclick="abrirModal('mod-dp-doc')">+ Registrar Documento</button>
+      </div>
+      <div class="al info" style="margin-bottom:12px;font-size:12px">
+        Documentos CLT devem ser guardados por mínimo 5 anos. Registre aqui o tipo e localização física/digital de cada documento.
+      </div>
+      <div class="card" style="margin-bottom:12px"><div class="ch3">📋 Checklist de Admissão — Documentos Obrigatórios</div><div id="dp-docs-admissao"></div></div>
+      <div class="card"><div class="ch3">📂 Documentos Registrados</div><div id="dp-docs-list"></div></div>
+    </div>
+
+    <!-- ═══ CHECKLIST CLT ═══ -->
+    <div id="dp-tab-checklist" style="display:none">
+      <div class="sg" style="margin-bottom:14px">
+        <div class="sc g"><div class="l">Conformidade</div><div class="v" id="dp-ck-pct">0%</div></div>
+        <div class="sc a"><div class="l">Itens OK</div><div class="v" id="dp-ck-ok">0</div></div>
+        <div class="sc r"><div class="l">Pendentes</div><div class="v" id="dp-ck-pend">0</div></div>
+        <div class="sc y"><div class="l">Atenção</div><div class="v" id="dp-ck-atenc">0</div></div>
+      </div>
+      <div class="card"><div class="ch3">✅ Checklist de Conformidade CLT</div><div id="dp-checklist-list"></div></div>
+    </div>
+
+    <!-- ═══ CONSULTA IA CLT ═══ -->
+    <div id="dp-tab-consulta" style="display:none">
+      <div class="ia-box" style="margin-bottom:12px">
+        <h3 style="color:var(--a);font-size:14px;font-weight:600;margin-bottom:8px">🤖 Assistente Jurídico-Trabalhista</h3>
+        <div style="font-size:12px;color:var(--mu);margin-bottom:10px">Dúvidas sobre CLT, eSocial, atestados, rescisões, FGTS e legislação trabalhista brasileira.</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+          <button onclick="dpConsultaRapida('Quais as faltas justificadas pela CLT Art.473 e documentos necessários?')" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:20px;padding:5px 12px;color:var(--mu);font-family:var(--sans);font-size:11px;cursor:pointer;">📋 Faltas justificadas</button>
+          <button onclick="dpConsultaRapida('Como calcular verbas rescisórias de demissão sem justa causa?')" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:20px;padding:5px 12px;color:var(--mu);font-family:var(--sans);font-size:11px;cursor:pointer;">💰 Verbas rescisórias</button>
+          <button onclick="dpConsultaRapida('Quais os direitos do menor aprendiz pela CLT?')" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:20px;padding:5px 12px;color:var(--mu);font-family:var(--sans);font-size:11px;cursor:pointer;">👶 Menor aprendiz</button>
+          <button onclick="dpConsultaRapida('O que é eSocial e quais eventos o DP lança mensalmente?')" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:20px;padding:5px 12px;color:var(--mu);font-family:var(--sans);font-size:11px;cursor:pointer;">📡 eSocial</button>
+          <button onclick="dpConsultaRapida('Como funciona banco de horas pela CLT? Quais os limites legais?')" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:20px;padding:5px 12px;color:var(--mu);font-family:var(--sans);font-size:11px;cursor:pointer;">⏱ Banco de horas</button>
+          <button onclick="dpConsultaRapida('Quais documentos o DP deve guardar e por quanto tempo?')" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:20px;padding:5px 12px;color:var(--mu);font-family:var(--sans);font-size:11px;cursor:pointer;">📂 Prazo arquivos</button>
+          <button onclick="dpConsultaRapida('Como funciona a licença maternidade e paternidade?')" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:20px;padding:5px 12px;color:var(--mu);font-family:var(--sans);font-size:11px;cursor:pointer;">👪 Licenças</button>
+          <button onclick="dpConsultaRapida('Quais os direitos do mesário eleitoral pela CLT?')" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:20px;padding:5px 12px;color:var(--mu);font-family:var(--sans);font-size:11px;cursor:pointer;">🗳 Mesário</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="dp-consulta-input" placeholder="Ex: Quais os documentos para atestado médico? Qual o prazo do aviso prévio?"
+            style="flex:1;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 12px;color:var(--tx);font-family:var(--sans);font-size:13px;outline:none;"
+            onkeydown="if(event.key==='Enter')dpEnviarConsulta()">
+          <button onclick="dpEnviarConsulta()" id="btn-dp-consulta" class="btn-ia" style="padding:10px 18px;flex-shrink:0">
+            ✨ Perguntar
+          </button>
+        </div>
+      </div>
+      <div id="dp-consulta-historico" style="max-height:500px;overflow-y:auto;display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+
   </div><!-- /dp-conteudo -->
 </div><!-- /v-dp -->
 
@@ -4018,6 +4087,368 @@ function setupDPBtn(){
 // ── Navegação DP no nav() ──
 // (adicionado ao VIEW_TITLES)
 
+// ══════════════════════════════════════════════════════════════
+// ATESTADOS E JUSTIFICATIVAS — CLT Art. 473
+// ══════════════════════════════════════════════════════════════
+const ATS_INFO = {
+  atestado_medico:'Documento: Atestado médico com CRM do médico, diagnóstico (CID) e período de afastamento. Prazo entrega: 48h após retorno.',
+  exame_cancer:'Até 3 dias por ano. Doc: Requisição/resultado do exame preventivo. (Lei 13.257/2016)',
+  doacao_sangue:'1 dia a cada 12 meses. Doc: Comprovante do hemocentro com data e assinatura.',
+  acomp_filho:'1 dia por ano para filhos até 6 anos. Doc: Atestado médico + certidão de nascimento do filho.',
+  acomp_prenatal:'Até 6 consultas pré-natal. Doc: Cartão de pré-natal ou declaração médica.',
+  casamento:'3 dias consecutivos. Doc: Certidão de casamento ou comprovante da celebração.',
+  paternidade:'5 dias (até 20 dias em Empresas Cidadãs). Doc: Certidão de nascimento do filho.',
+  falecimento:'2 dias para parentes diretos (pais, filhos, cônjuge, irmãos). Doc: Certidão de óbito.',
+  maternidade:'120 dias (até 180 em Empresas Cidadãs). Doc: Certidão de nascimento e declaração médica.',
+  mesario:'Dobro dos dias trabalhados como mesário. Doc: Declaração oficial do TRE (disponível após o pleito).',
+  alistamento:'Até 2 dias. Doc: Comprovante emitido pelo cartório eleitoral.',
+  votar:'Domingo — sem necessidade de justificativa (a eleição já ocorre no dia de folga).',
+  servico_militar:'Pelo tempo da convocação. Doc: Documento oficial das Forças Armadas.',
+  jurado:'Pelo tempo necessário. Doc: Convocação judicial oficial.',
+  vestibular:'Nos dias das provas. Doc: Comprovante de inscrição + declaração da instituição.',
+  acidente:'Afastamento pelo INSS após 15 dias. Doc: CAT (Comunicação de Acidente) + atestado INSS.',
+  outro:'Verificar amparo legal específico. Doc: Declaração ou comprovante pertinente.'
+};
+
+function dpAtsOnTipo(){
+  var t=document.getElementById('dp-ats-tipo').value;
+  var el=document.getElementById('dp-ats-info');
+  if(el)el.innerHTML=ATS_INFO[t]||'';
+}
+
+function renderDPAtestados(filtro){
+  var ats=S.g('dp_atestados')||[];
+  var el=document.getElementById('dp-atestados-list');
+  if(!el)return;
+  var lista=filtro&&filtro!=='todos'?ats.filter(function(a){return a.status===filtro;}):ats;
+  if(!lista.length){el.innerHTML='<div style="color:var(--mu);font-size:13px;text-align:center;padding:20px">Nenhum registro. Clique em "+ Registrar" para adicionar.</div>';return;}
+  var ST_C={pendente:'y',aprovado:'g',recusado:'r'};
+  var ST_L={pendente:'Pendente',aprovado:'Aprovado',recusado:'Recusado'};
+  var TIPO_L={atestado_medico:'Atestado Médico',exame_cancer:'Exame Câncer',doacao_sangue:'Doação Sangue',acomp_filho:'Acomp. Filho',acomp_prenatal:'Pré-natal',casamento:'Casamento',paternidade:'Paternidade',falecimento:'Falecimento',maternidade:'Maternidade',mesario:'Mesário',alistamento:'Alistamento',votar:'Votar',servico_militar:'Serviço Militar',jurado:'Jurado/Depoimento',vestibular:'Vestibular',acidente:'Acidente Trabalho',outro:'Outro'};
+  el.innerHTML=lista.sort(function(a,b){return b.data.localeCompare(a.data);}).map(function(a){
+    return '<div style="background:var(--bg3);border-left:3px solid var(--'+(ST_C[a.status]||'mu')+');border-radius:var(--rs);padding:12px;margin-bottom:8px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">'
+      +'<div>'
+      +'<div style="font-size:13px;font-weight:600">'+a.func+'</div>'
+      +'<div style="font-size:12px;color:var(--a);margin-top:2px">'+(TIPO_L[a.tipo]||a.tipo)+'</div>'
+      +'<div style="font-size:11px;color:var(--mu);margin-top:2px">'+new Date(a.data+'T12:00').toLocaleDateString('pt-BR')+' · '+a.dias+' dia(s)'+(a.doc?' · 📎 '+a.doc:'')+'</div>'
+      +(a.obs?'<div style="font-size:11px;color:var(--mu);font-style:italic;margin-top:3px">'+a.obs+'</div>':'')
+      +'</div>'
+      +'<div style="display:flex;gap:6px;align-items:center">'
+      +'<span class="b '+ST_C[a.status]+'">'+ST_L[a.status]+'</span>'
+      +(a.status==='pendente'?'<button onclick="aprovarAtestado(\''+a.id+'\')" style="background:rgba(52,211,153,.12);color:var(--g);border:1px solid rgba(52,211,153,.2);border-radius:var(--rs);padding:4px 8px;font-family:var(--sans);font-size:11px;cursor:pointer">✓ Aprovar</button>':'')
+      +'<button onclick="excluirAtestado(\''+a.id+'\')" style="background:none;border:none;color:var(--r);cursor:pointer;font-size:13px">🗑</button>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function dpFiltrarAtestados(filtro,btn){
+  document.querySelectorAll('[id^="ats-f-"]').forEach(function(b){b.style.opacity='0.5';});
+  if(btn)btn.style.opacity='1';
+  renderDPAtestados(filtro);
+}
+
+function salvarAtestado(){
+  var func=document.getElementById('dp-ats-func').value;
+  if(!func){alert('Selecione um funcionário.');return;}
+  var data=document.getElementById('dp-ats-data').value;
+  if(!data){alert('Informe a data da falta.');return;}
+  var ats=S.g('dp_atestados')||[];
+  ats.unshift({
+    id:'at'+Date.now(),func:func,
+    tipo:document.getElementById('dp-ats-tipo').value,
+    data:data,
+    dias:parseInt(document.getElementById('dp-ats-dias').value)||1,
+    status:document.getElementById('dp-ats-status').value,
+    doc:document.getElementById('dp-ats-doc').value,
+    obs:document.getElementById('dp-ats-obs').value,
+    registradoEm:new Date().toISOString().split('T')[0]
+  });
+  S.s('dp_atestados',ats);
+  fecharModal('mod-dp-atestado');
+  renderDPAtestados('todos');
+}
+
+function aprovarAtestado(id){
+  var ats=S.g('dp_atestados')||[];
+  var item=ats.find(function(a){return a.id===id;});
+  if(item){item.status='aprovado';S.s('dp_atestados',ats);}
+  renderDPAtestados('todos');
+}
+
+function excluirAtestado(id){
+  if(!confirm('Excluir este registro?'))return;
+  var ats=(S.g('dp_atestados')||[]).filter(function(a){return a.id!==id;});
+  S.s('dp_atestados',ats);renderDPAtestados('todos');
+}
+
+// ══════════════════════════════════════════════════════════════
+// DOCUMENTOS DP
+// ══════════════════════════════════════════════════════════════
+const DOCS_ADMISSAO_OBRIG=[
+  'RG / CPF / CNH','Carteira de Trabalho (CTPS)','PIS/PASEP',
+  'Comprovante de Residência','Título de Eleitor',
+  'Certificado Reservista (homens)','Conta Bancária para depósito',
+  'Exame Admissional (ASO)','Contrato de Trabalho Assinado',
+  'Ficha de Registro do Empregado','NR-1 — Treinamento de Segurança'
+];
+
+function renderDPDocumentosAdmissao(){
+  var el=document.getElementById('dp-docs-admissao');
+  if(!el)return;
+  var docs=S.g('dp_documentos')||[];
+  el.innerHTML=DOCS_ADMISSAO_OBRIG.map(function(d){
+    var entregue=docs.some(function(x){return x.tipo===d&&x.status!=='pendente';});
+    return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bdr)">'
+      +'<span style="font-size:16px">'+(entregue?'✅':'⬜')+'</span>'
+      +'<span style="font-size:13px;color:'+(entregue?'var(--g)':'var(--tx)')+'">'+d+'</span>'
+      +(entregue?'<span style="font-size:10px;color:var(--g);margin-left:auto">Arquivado</span>':'<span style="font-size:10px;color:var(--r);margin-left:auto">Pendente</span>')
+      +'</div>';
+  }).join('');
+}
+
+function renderDPDocumentos(){
+  var docs=S.g('dp_documentos')||[];
+  var el=document.getElementById('dp-docs-list');
+  if(!el)return;
+  if(!docs.length){el.innerHTML='<div style="color:var(--mu);font-size:13px;text-align:center;padding:20px">Nenhum documento registrado.</div>';return;}
+  var ST_C={pendente:'r',recebido:'y',arquivado:'g'};
+  el.innerHTML=docs.sort(function(a,b){return b.data.localeCompare(a.data);}).map(function(d){
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bdr);flex-wrap:wrap">'
+      +'<div style="flex:1"><div style="font-size:13px;font-weight:500">'+d.tipo+'</div>'
+      +'<div style="font-size:11px;color:var(--mu)">'+(d.func||'Empresa')+' · '+new Date(d.data+'T12:00').toLocaleDateString('pt-BR')+(d.local?' · 📁 '+d.local:'')+'</div>'
+      +(d.obs?'<div style="font-size:11px;color:var(--mu);font-style:italic">'+d.obs+'</div>':'')
+      +'</div>'
+      +'<span class="b '+ST_C[d.status]+'">'+{pendente:'Pendente',recebido:'Recebido',arquivado:'Arquivado'}[d.status]+'</span>'
+      +'<button onclick="excluirDocDP(\''+d.id+'\')" style="background:none;border:none;color:var(--r);cursor:pointer;font-size:13px">🗑</button>'
+      +'</div>';
+  }).join('');
+}
+
+function salvarDocumentoDP(){
+  var data=document.getElementById('dp-doc-data').value;
+  if(!data){alert('Informe a data do documento.');return;}
+  var docs=S.g('dp_documentos')||[];
+  docs.unshift({
+    id:'doc'+Date.now(),
+    func:document.getElementById('dp-doc-func').value||'',
+    tipo:document.getElementById('dp-doc-tipo').value,
+    data:data,
+    status:document.getElementById('dp-doc-status').value,
+    local:document.getElementById('dp-doc-local').value,
+    obs:document.getElementById('dp-doc-obs').value
+  });
+  S.s('dp_documentos',docs);
+  fecharModal('mod-dp-doc');
+  renderDPDocumentos();
+  renderDPDocumentosAdmissao();
+}
+
+function excluirDocDP(id){
+  if(!confirm('Excluir este registro?'))return;
+  var docs=(S.g('dp_documentos')||[]).filter(function(d){return d.id!==id;});
+  S.s('dp_documentos',docs);
+  renderDPDocumentos();
+  renderDPDocumentosAdmissao();
+}
+
+// ══════════════════════════════════════════════════════════════
+// CHECKLIST CLT
+// ══════════════════════════════════════════════════════════════
+const DP_CHECKLIST_ITENS = [
+  {id:'ck01',cat:'Admissão',item:'Ficha de registro de todos os funcionários preenchida',ref:'CLT Art.41'},
+  {id:'ck02',cat:'Admissão',item:'CTPS anotada (admissão, cargo, salário) e devolvida em 5 dias',ref:'CLT Art.29'},
+  {id:'ck03',cat:'Admissão',item:'Exame admissional (ASO) realizado antes do início',ref:'NR-7 / CLT Art.168'},
+  {id:'ck04',cat:'Admissão',item:'Cadastro no eSocial (S-2200) realizado',ref:'eSocial'},
+  {id:'ck05',cat:'Ponto e Jornada',item:'Registro de ponto sendo realizado diariamente',ref:'CLT Art.74'},
+  {id:'ck06',cat:'Ponto e Jornada',item:'Jornada máxima de 44h semanais respeitada',ref:'CLT Art.58'},
+  {id:'ck07',cat:'Ponto e Jornada',item:'Horas extras com acréscimo de 50% (dias úteis)',ref:'CLT Art.59'},
+  {id:'ck08',cat:'Pagamento',item:'Salários pagos até o 5º dia útil do mês seguinte',ref:'CLT Art.459'},
+  {id:'ck09',cat:'Pagamento',item:'Holerite (contracheque) entregue a cada funcionário',ref:'CLT Art.225 Decreto 3048'},
+  {id:'ck10',cat:'Pagamento',item:'INSS recolhido até o dia 20 do mês seguinte',ref:'Lei 8.212/91'},
+  {id:'ck11',cat:'Pagamento',item:'FGTS depositado até o dia 7 de cada mês',ref:'Lei 8.036/90'},
+  {id:'ck12',cat:'Segurança',item:'NR-1 (Segurança e Saúde no Trabalho) aplicada',ref:'NR-1 / Portaria 1419'},
+  {id:'ck13',cat:'Segurança',item:'PPP (Perfil Profissiográfico Previdenciário) atualizado',ref:'INSS'},
+  {id:'ck14',cat:'Férias',item:'Aviso de férias dado com 30 dias de antecedência',ref:'CLT Art.135'},
+  {id:'ck15',cat:'Férias',item:'Pagamento de férias feito 2 dias antes do início',ref:'CLT Art.145'},
+  {id:'ck16',cat:'Documentos',item:'Documentos de admissão arquivados e organizados',ref:'CLT Art.29'},
+  {id:'ck17',cat:'Documentos',item:'Atestados médicos registrados e arquivados',ref:'CLT Art.473'},
+  {id:'ck18',cat:'Rescisão',item:'Rescisão homologada dentro do prazo (10 dias corridos)',ref:'CLT Art.477'},
+  {id:'ck19',cat:'Menor Aprendiz',item:'Contrato de aprendizagem registrado na CTPS',ref:'CLT Art.428'},
+  {id:'ck20',cat:'Menor Aprendiz',item:'Jornada máxima de 6h/dia respeitada para menores de 16 anos',ref:'CLT Art.432'},
+];
+
+function renderDPChecklist(){
+  var status_ck=S.g('dp_checklist_status')||{};
+  var ok=0,pend=0,atenc=0;
+  var cats={};
+  DP_CHECKLIST_ITENS.forEach(function(item){
+    if(!cats[item.cat])cats[item.cat]=[];
+    cats[item.cat].push(item);
+    var s=status_ck[item.id]||'pend';
+    if(s==='ok')ok++;
+    else if(s==='atenc')atenc++;
+    else pend++;
+  });
+  var total=DP_CHECKLIST_ITENS.length;
+  var pct=Math.round((ok/total)*100);
+  document.getElementById('dp-ck-pct').textContent=pct+'%';
+  document.getElementById('dp-ck-ok').textContent=ok;
+  document.getElementById('dp-ck-pend').textContent=pend;
+  document.getElementById('dp-ck-atenc').textContent=atenc;
+
+  var el=document.getElementById('dp-checklist-list');
+  if(!el)return;
+  el.innerHTML=Object.entries(cats).map(function(e){
+    var cat=e[0],itens=e[1];
+    return '<div style="margin-bottom:16px">'
+      +'<div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--a);font-weight:600;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--bdr)">'+cat+'</div>'
+      +itens.map(function(item){
+        var s=status_ck[item.id]||'pend';
+        var icon=s==='ok'?'✅':s==='atenc'?'⚠️':'⬜';
+        var cor=s==='ok'?'var(--g)':s==='atenc'?'var(--y)':'var(--tx)';
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(99,179,237,0.06)">'
+          +'<span style="font-size:18px;flex-shrink:0">'+icon+'</span>'
+          +'<div style="flex:1">'
+          +'<div style="font-size:13px;color:'+cor+'">'+item.item+'</div>'
+          +'<div style="font-size:10px;color:var(--mu)">Ref: '+item.ref+'</div>'
+          +'</div>'
+          +'<div style="display:flex;gap:4px;flex-shrink:0">'
+          +'<button onclick="setCkStatus(\''+item.id+'\',\'ok\')" style="background:'+(s==='ok'?'rgba(52,211,153,.2)':'transparent')+';border:1px solid rgba(52,211,153,.2);border-radius:4px;padding:3px 8px;color:var(--g);font-family:var(--sans);font-size:11px;cursor:pointer">✓ OK</button>'
+          +'<button onclick="setCkStatus(\''+item.id+'\',\'atenc\')" style="background:'+(s==='atenc'?'rgba(251,191,36,.2)':'transparent')+';border:1px solid rgba(251,191,36,.2);border-radius:4px;padding:3px 8px;color:var(--y);font-family:var(--sans);font-size:11px;cursor:pointer">⚠ Atenção</button>'
+          +'<button onclick="setCkStatus(\''+item.id+'\',\'pend\')" style="background:'+(s==='pend'?'rgba(248,113,113,.2)':'transparent')+';border:1px solid rgba(248,113,113,.15);border-radius:4px;padding:3px 8px;color:var(--r);font-family:var(--sans);font-size:11px;cursor:pointer">✗ Pend.</button>'
+          +'</div>'
+          +'</div>';
+      }).join('')
+      +'</div>';
+  }).join('');
+}
+
+function setCkStatus(id,status){
+  var ck=S.g('dp_checklist_status')||{};
+  ck[id]=status;
+  S.s('dp_checklist_status',ck);
+  renderDPChecklist();
+}
+
+// ══════════════════════════════════════════════════════════════
+// CONSULTA IA — CLT (100% LOCAL, sem API)
+// Banco de conhecimento trabalhista embutido
+// ══════════════════════════════════════════════════════════════
+const CLT_BASE = {
+  'falta justificada': 'As faltas justificadas previstas no CLT Art.473 incluem:\n• Atestado médico próprio (até 15 dias pela empresa, depois INSS)\n• Casamento: 3 dias consecutivos\n• Falecimento de parente direto: 2 dias\n• Nascimento de filho: 5 dias (paternidade)\n• Doação de sangue: 1 dia a cada 12 meses (comprovante do hemocentro)\n• Alistamento/recadastramento eleitoral: até 2 dias\n• Exames preventivos de câncer: até 3 dias por ano\n• Acompanhamento de filho até 6 anos: 1 dia por ano\n• Vestibular: nos dias das provas\n• Serviço militar: pelo tempo da convocação\n• Depoimento em juízo: pelo tempo necessário\n• Mesário eleitoral: dobro dos dias trabalhados\n\n📌 Documentos devem ser entregues em até 48h após o retorno. A empresa não pode descontar salário nem DSR nessas faltas.',
+  'verbas rescisórias': 'Verbas por tipo de desligamento:\n\n📤 PEDIDO DE DEMISSÃO\n• Saldo de salário\n• Férias vencidas + proporcionais + 1/3\n• 13º proporcional\n• Aviso prévio trabalhado (ou desconto se não cumprir)\n\n🚫 DEMISSÃO SEM JUSTA CAUSA\n• Tudo acima + aviso prévio indenizado + saque FGTS + multa 40% FGTS + seguro-desemprego\n\n⚖️ JUSTA CAUSA\n• Apenas saldo de salário + férias vencidas (se houver)\n• Sem FGTS, sem aviso prévio, sem seguro-desemprego\n\n🤝 ACORDO (ART.484-A)\n• Metade do aviso indenizado + FGTS com multa 20% (não 40%)\n\n⏱ Prazo: 10 dias corridos após o término do aviso para pagar.',
+  'menor aprendiz': 'O contrato de aprendizagem (CLT Art.428) tem regras específicas:\n• Idade: 14 a 24 anos (sem limite para PcD)\n• Jornada: até 6h/dia (até 8h se ensino médio completo)\n• Salário: mínimo hora proporcional à jornada\n• FGTS: 2% (em vez de 8%)\n• Não paga multa de 40% do FGTS na rescisão sem justa causa\n• Deve estar matriculado em programa de aprendizagem (SENAI, SENAC, etc.)\n• Cota obrigatória: 5% a 15% dos trabalhadores em funções que exijam formação profissional\n• Rescisão antecipada só por desempenho insuficiente, falta injustificada ou solicitação do aprendiz.',
+  'esocial': 'Principais eventos eSocial para o DP mensal:\n• S-1200: Remuneração do trabalhador (mensal — até o dia 15)\n• S-1210: Pagamentos de rendimentos (folha fechada)\n• S-2200: Admissão de empregado (antes do início)\n• S-2205: Alteração de dados cadastrais\n• S-2230: Afastamento temporário (atestado, licença)\n• S-2299: Desligamento (até 10 dias após)\n• S-2300: Trabalhador sem vínculo (autônomo)\n• S-3000: Exclusão de eventos\n\n📌 O DCTFWeb substituiu a GFIP. Os recolhimentos (GPS/DARF) são gerados automaticamente após o envio dos eventos.',
+  'banco de horas': 'Banco de horas (compensação de jornada) — CLT Art.59:\n• Deve ser formalizado em acordo individual escrito ou CCT\n• Horas extras podem ser compensadas sem acréscimo se:\n  - Compensadas no mesmo mês (acordo individual)\n  - Em até 6 meses (acordo coletivo/CCT)\n• Limite: 10h por dia, 44h semanais\n• Se não compensadas no prazo, pagamento com adicional de 50%\n• Saldo positivo na rescisão: pago com 50% de acréscimo\n• Saldo negativo na rescisão: desconto permitido apenas se previsto em acordo',
+  'prazo arquivos': 'Prazo de guarda de documentos trabalhistas:\n• Ficha de registro: 5 anos após rescisão\n• Folha de pagamento: 10 anos\n• Recibo de salário assinado: 5 anos\n• CTPS (anotações): enquanto durar o contrato\n• Atestados médicos: 5 anos\n• Folha de ponto: 5 anos\n• PPP (Perfil Profissiográfico): 20 anos após rescisão\n• CAT (acidente de trabalho): 5 anos\n• FGTS (SEFIP/GFIP): 10 anos\n• Exames médicos (ASO): 20 anos\n\n⚠️ Guarda preferencialmente em local seguro e com cópia digital.',
+  'licença': 'Principais licenças trabalhistas:\n• Maternidade: 120 dias (até 180 dias em Empresas Cidadãs — Lei 11.770)\n• Paternidade: 5 dias (até 20 dias em Empresas Cidadãs)\n• Adoção: mesmos prazos da maternidade\n• Casamento: 3 dias\n• Luto/Nojo: 2 dias (parentes diretos)\n• Afastamento por doença: até 15 dias pela empresa, a partir do 16º pelo INSS\n• Acidente de trabalho: sem prazo máximo (custeado pelo INSS a partir do 1º dia)',
+  'mesário': 'Direitos do mesário eleitoral (CLT Art.473, VII):\n• Folgas: 2 dias de folga para cada dia trabalhado na eleição (inclui treinamento e dias de votação)\n• Ex: 2 dias de treinamento + 1 dia de votação = 6 dias de folga\n• As folgas não expiram enquanto durar o contrato\n• Devem ser comunicadas ao empregador com antecedência\n• A empresa não pode recusar nem descontar\n• Documento: Declaração oficial do TRE (disponível no site após o pleito)',
+  'inss': 'Tabela INSS 2024 (desconto do empregado — progressivo):\n• Até R$ 1.412,00: 7,5%\n• De R$ 1.412,01 a R$ 2.666,68: 9,0%\n• De R$ 2.666,69 a R$ 4.000,03: 12,0%\n• De R$ 4.000,04 a R$ 7.786,02: 14,0%\n\nEncargo patronal (empresa paga):\n• 20% sobre folha + RAT (1-3%) + Sistema S (3,3%) + FGTS 8%\n\n⚠️ O desconto é progressivo por faixa (não aplica alíquota única sobre todo o salário)',
+  'fgts': 'FGTS — Fundo de Garantia do Tempo de Serviço:\n• Alíquota: 8% do salário bruto (pago pela empresa, não descontado do funcionário)\n• Menor aprendiz: 2%\n• Depósito até o dia 7 de cada mês\n• Multa por demissão sem justa causa: 40% do saldo\n• Acordo (Art.484-A): 20% de multa\n• Saque: demissão sem justa causa, aposentadoria, compra de imóvel, doenças graves\n• Conta no banco designado pelo empregado',
+  'férias': 'Férias — CLT Art.129 a 153:\n• Direito após 12 meses de contrato (período aquisitivo)\n• 30 dias corridos (com menos de 5 faltas injustificadas)\n• Pode ser dividida em até 3 períodos (mínimo de 14 + 10 + 6 dias)\n• Aviso com 30 dias de antecedência\n• Pagamento: 2 dias antes do início + 1/3 constitucional\n• Venda de férias (abono): até 10 dias (opcional do empregado)\n• Férias vencidas e não gozadas: pagamento em dobro'
+};
+
+function dpConsultaLocal(pergunta){
+  var p = pergunta.toLowerCase();
+  var resposta = null;
+  
+  // Busca por palavras-chave no banco local
+  var mapa = [
+    {keys:['falta justificada','atestado','justificativa','art.473','art 473','doacao sangue','casamento','luto','nojo','mesario','mesária','alistamento','prenatal','pré-natal','vestibular','militar','jurado'], resp:'falta justificada'},
+    {keys:['rescisão','rescisao','verbas','demissão','demissao','justa causa','aviso prévio','aviso previo','seguro desemprego','fgts rescisão'], resp:'verbas rescisórias'},
+    {keys:['menor aprendiz','aprendiz','aprendizagem','14 anos','16 anos'], resp:'menor aprendiz'},
+    {keys:['esocial','e-social','s-2200','s-1200','dctweb','gfip','sefip'], resp:'esocial'},
+    {keys:['banco de horas','compensação','compensacao','horas extras'], resp:'banco de horas'},
+    {keys:['prazo','arquivo','guarda','quanto tempo','documentos guardar'], resp:'prazo arquivos'},
+    {keys:['licença','licenca','maternidade','paternidade','adoção','adocao'], resp:'licença'},
+    {keys:['mesário','mesario','eleitoral','tre','eleição'], resp:'mesário'},
+    {keys:['inss','previdência','previdencia','desconto previdência'], resp:'inss'},
+    {keys:['fgts','fundo de garantia','deposito fgts'], resp:'fgts'},
+    {keys:['férias','ferias','período aquisitivo','abono'], resp:'férias'},
+  ];
+  
+  for(var i=0;i<mapa.length;i++){
+    for(var j=0;j<mapa[i].keys.length;j++){
+      if(p.indexOf(mapa[i].keys[j])!==-1){
+        resposta=CLT_BASE[mapa[i].resp];
+        break;
+      }
+    }
+    if(resposta)break;
+  }
+  
+  if(!resposta){
+    resposta='Não encontrei uma resposta específica no banco local para essa pergunta.\n\n📌 Temas disponíveis:\n• Faltas justificadas (CLT Art.473)\n• Verbas rescisórias (demissão, justa causa, acordo)\n• Menor aprendiz\n• eSocial (eventos mensais)\n• Banco de horas\n• Prazo de guarda de documentos\n• Licenças (maternidade, paternidade)\n• Mesário eleitoral\n• INSS (tabela e cálculo)\n• FGTS\n• Férias\n\nPara consultas mais específicas, recomendo: mte.gov.br, esocial.gov.br ou CLT comentada.';
+  }
+  return resposta;
+}
+
+var _dpConsultaHistorico=[];
+
+function dpConsultaRapida(pergunta){
+  document.getElementById('dp-consulta-input').value=pergunta;
+  dpEnviarConsulta();
+}
+
+function dpEnviarConsulta(){
+  var input=document.getElementById('dp-consulta-input');
+  var pergunta=input.value.trim();
+  if(!pergunta)return;
+  input.value='';
+
+  var hist=document.getElementById('dp-consulta-historico');
+  if(!hist)return;
+
+  // Adicionar pergunta
+  var divPerg=document.createElement('div');
+  divPerg.style.cssText='background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.15);border-radius:var(--rr);padding:12px;';
+  divPerg.innerHTML='<div style="font-size:10px;color:var(--a);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Sua pergunta</div>'
+    +'<div style="font-size:13px">'+pergunta+'</div>';
+  hist.insertBefore(divPerg, hist.firstChild);
+
+  // Resposta local
+  var resposta=dpConsultaLocal(pergunta);
+  
+  var divResp=document.createElement('div');
+  divResp.style.cssText='background:var(--bg3);border:1px solid var(--bdr);border-left:3px solid var(--g);border-radius:var(--rr);padding:12px;';
+  divResp.innerHTML='<div style="font-size:10px;color:var(--g);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">⚖️ Assistente CLT</div>'
+    +'<div style="font-size:13px;line-height:1.75;color:#cbd5e1;white-space:pre-line">'+resposta+'</div>'
+    +'<div style="font-size:10px;color:var(--mu);margin-top:8px">Base: CLT/2024 · Consulte sempre um advogado trabalhista para casos específicos.</div>';
+  hist.insertBefore(divResp, hist.firstChild);
+}
+
+// ══════════════════════════════════════════════════════════════
+// Atualizar dpTab para incluir novas tabs
+// ══════════════════════════════════════════════════════════════
+var _dpTabOrig=dpTab;
+dpTab=function(id,btn){
+  // Adicionar novas tabs à lista
+  var extras=['atestados','documentos','checklist','consulta'];
+  extras.forEach(function(t){
+    var el=document.getElementById('dp-tab-'+t);
+    if(el)el.style.display='none';
+  });
+  _dpTabOrig(id,btn);
+  if(id==='atestados'){
+    var f=document.getElementById('dp-ats-func');
+    if(f){var users=S.g('users')||{};f.innerHTML='<option value="">Selecionar...</option>'+Object.entries(users).filter(function(e){return e[1].nivel==='OPERACIONAL';}).map(function(e){return '<option>'+e[1].nome+'</option>';}).join('');}
+    renderDPAtestados('todos');
+  }
+  if(id==='documentos'){
+    var f2=document.getElementById('dp-doc-func');
+    if(f2){var users2=S.g('users')||{};f2.innerHTML='<option value="">— Documento Geral da Empresa —</option>'+Object.entries(users2).filter(function(e){return e[1].nivel==='OPERACIONAL';}).map(function(e){return '<option>'+e[1].nome+'</option>';}).join('');}
+    renderDPDocumentos();renderDPDocumentosAdmissao();
+  }
+  if(id==='checklist')renderDPChecklist();
+  if(id==='atestados'||id==='documentos'||id==='checklist'||id==='consulta'){
+    var el2=document.getElementById('dp-tab-'+id);
+    if(el2)el2.style.display='block';
+  }
+};
+
 initData();
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'){
@@ -4161,6 +4592,121 @@ document.addEventListener('keydown',e=>{
   </div><!-- /dp-content -->
 </div>
 </div><!-- /v-dp-overlay -->
+
+
+<!-- ═══ MODAL ATESTADO/JUSTIFICATIVA ═══ -->
+<div class="ov" id="mod-dp-atestado"><div class="mod" style="max-width:560px">
+  <div class="mod-h"><h3>🏥 Atestado / Justificativa de Falta</h3><button class="xbtn" onclick="fecharModal('mod-dp-atestado')">✕</button></div>
+  <div class="ff"><label>Funcionário</label><select id="dp-ats-func"></select></div>
+  <div class="fg t">
+    <div class="ff"><label>Data da Falta</label><input id="dp-ats-data" type="date"></div>
+    <div class="ff"><label>Tipo de Justificativa</label>
+      <select id="dp-ats-tipo" onchange="dpAtsOnTipo()">
+        <optgroup label="Saúde e Bem-Estar">
+          <option value="atestado_medico">Atestado Médico Próprio (CLT Art.473)</option>
+          <option value="exame_cancer">Exame Preventivo de Câncer (até 3 dias/ano)</option>
+          <option value="doacao_sangue">Doação de Sangue (1 dia/12 meses)</option>
+          <option value="acomp_filho">Acompanhamento de Filho até 6 anos (1 dia/ano)</option>
+          <option value="acomp_prenatal">Acompanhamento Pré-natal da Esposa (até 6 consultas)</option>
+        </optgroup>
+        <optgroup label="Eventos Familiares">
+          <option value="casamento">Casamento — Gala (3 dias consecutivos)</option>
+          <option value="paternidade">Nascimento de Filho — Paternidade (5 a 20 dias)</option>
+          <option value="falecimento">Falecimento de Familiar — Nojo (2 dias)</option>
+          <option value="maternidade">Licença Maternidade (120 a 180 dias)</option>
+        </optgroup>
+        <optgroup label="Deveres Eleitorais">
+          <option value="mesario">Mesário Eleitoral (dobro dos dias trabalhados)</option>
+          <option value="alistamento">Alistamento Eleitoral (até 2 dias)</option>
+          <option value="votar">Tempo para Votar (domingo — sem desconto)</option>
+        </optgroup>
+        <optgroup label="Deveres Cívicos">
+          <option value="servico_militar">Serviço Militar (tempo da convocação)</option>
+          <option value="jurado">Depoimento em Juízo / Júri (tempo necessário)</option>
+          <option value="vestibular">Vestibular / Prova de Seleção (dia das provas)</option>
+        </optgroup>
+        <optgroup label="Outros">
+          <option value="acidente">Acidente de Trabalho</option>
+          <option value="outro">Outro (preencher observação)</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="ff"><label>Dias Ausentes</label><input id="dp-ats-dias" type="number" min="1" max="180" value="1"></div>
+    <div class="ff"><label>Status</label>
+      <select id="dp-ats-status">
+        <option value="pendente">Pendente — aguardando documento</option>
+        <option value="aprovado">Aprovado — documento entregue</option>
+        <option value="recusado">Recusado — sem amparo legal</option>
+      </select>
+    </div>
+  </div>
+  <div id="dp-ats-info" style="background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);border-radius:var(--rs);padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--g)"></div>
+  <div class="ff"><label>Documento Comprobatório (referência / local)</label>
+    <input id="dp-ats-doc" placeholder="Ex: Atestado Dr. Silva — CRM 12345 — Pasta Física A3 ou Google Drive/Atestados/2026"></div>
+  <div class="ff"><label>Observações</label>
+    <textarea id="dp-ats-obs" placeholder="Detalhes adicionais..."></textarea></div>
+  <button class="btn gr" style="width:100%;padding:12px" onclick="salvarAtestado()">✓ Registrar Justificativa</button>
+</div></div>
+
+<!-- ═══ MODAL DOCUMENTO DP ═══ -->
+<div class="ov" id="mod-dp-doc"><div class="mod" style="max-width:540px">
+  <div class="mod-h"><h3>📂 Registrar Documento</h3><button class="xbtn" onclick="fecharModal('mod-dp-doc')">✕</button></div>
+  <div class="ff"><label>Funcionário (deixe vazio para documento geral)</label>
+    <select id="dp-doc-func"><option value="">— Documento Geral da Empresa —</option></select></div>
+  <div class="ff"><label>Tipo de Documento</label>
+    <select id="dp-doc-tipo">
+      <optgroup label="Admissão">
+        <option>RG / CPF / CNH</option>
+        <option>Carteira de Trabalho (CTPS)</option>
+        <option>PIS/PASEP</option>
+        <option>Comprovante de Residência</option>
+        <option>Certidão de Nascimento/Casamento</option>
+        <option>Título de Eleitor</option>
+        <option>Certificado Reservista (homens)</option>
+        <option>Foto 3x4</option>
+        <option>Conta Bancária</option>
+        <option>Exame Admissional</option>
+        <option>Contrato de Trabalho Assinado</option>
+        <option>Ficha de Registro do Empregado</option>
+      </optgroup>
+      <optgroup label="Durante o Contrato">
+        <option>Atestado Médico</option>
+        <option>Declaração de Dependentes (IRRF)</option>
+        <option>Comprovante de Vale-Transporte</option>
+        <option>Declaração de Mesário</option>
+        <option>Certidão de Nascimento de Filhos</option>
+        <option>NR-1 — Treinamento de Segurança</option>
+        <option>Recibo de Férias</option>
+        <option>Folha de Ponto Assinada</option>
+      </optgroup>
+      <optgroup label="Desligamento">
+        <option>Termo de Rescisão Assinado</option>
+        <option>Carta de Demissão</option>
+        <option>Homologação Sindical</option>
+        <option>Guia FGTS</option>
+        <option>Seguro-Desemprego</option>
+      </optgroup>
+      <optgroup label="Outros">
+        <option>Outro (especificar nas observações)</option>
+      </optgroup>
+    </select>
+  </div>
+  <div class="fg t">
+    <div class="ff"><label>Data do Documento</label><input id="dp-doc-data" type="date"></div>
+    <div class="ff"><label>Status</label>
+      <select id="dp-doc-status">
+        <option value="pendente">Pendente — não entregue</option>
+        <option value="recebido">Recebido — aguardando arquivamento</option>
+        <option value="arquivado">Arquivado</option>
+      </select>
+    </div>
+  </div>
+  <div class="ff"><label>Local de Arquivamento (pasta física ou link)</label>
+    <input id="dp-doc-local" placeholder="Ex: Pasta Azul — Prateleira A / drive.google.com/..."></div>
+  <div class="ff"><label>Observações</label>
+    <textarea id="dp-doc-obs" placeholder="Validade, cópias, autenticações necessárias..."></textarea></div>
+  <button class="btn pr" style="width:100%;padding:12px" onclick="salvarDocumentoDP()">✓ Registrar Documento</button>
+</div></div>
 
 </body>
 </html>
