@@ -1574,47 +1574,68 @@ function doLogin(){
   const u=document.getElementById('lu').value.trim().toLowerCase();
   const p=document.getElementById('lp').value;
 
-  // LOGINS HARDCODED — sempre funcionam, independente do localStorage
+  // LOGINS FIXOS — sempre funcionam
   const FIXOS={
     'jorge.zensque':{pass:'master2026',nome:'Jorge Zensque',nivel:'CONSELHO',cargo:'Conselho Deliberativo',time:null,setor:'conselho',meta:0},
     'gestor':{pass:'gest123',nome:'Gestor Geral',nivel:'GESTOR',cargo:'CEO / Gestor',time:null,setor:'gestao',meta:0},
-    'lider.a':{pass:'lid123',nome:'Líder Time A',nivel:'LIDER',cargo:'Líder de Equipe',time:'ta',setor:'picking',meta:0},
-    'lider.b':{pass:'lid123',nome:'Líder Time B',nivel:'LIDER',cargo:'Líder de Equipe',time:'tb',setor:'embalagem',meta:0},
-    'lider.c':{pass:'lid123',nome:'Líder Time C',nivel:'LIDER',cargo:'Líder de Equipe',time:'tc',setor:'expedicao',meta:0},
+    'lider.a':{pass:'lid123',nome:'Lider Time A',nivel:'LIDER',cargo:'Lider de Equipe',time:'ta',setor:'picking',meta:0},
+    'lider.b':{pass:'lid123',nome:'Lider Time B',nivel:'LIDER',cargo:'Lider de Equipe',time:'tb',setor:'embalagem',meta:0},
+    'lider.c':{pass:'lid123',nome:'Lider Time C',nivel:'LIDER',cargo:'Lider de Equipe',time:'tc',setor:'expedicao',meta:0},
+    'coord.dp':{pass:'dp2026',nome:'Coordenador DP',nivel:'DP',cargo:'Coordenador de DP',time:null,setor:'dp',meta:0},
   };
-  // Verificar logins fixos PRIMEIRO (sempre funcionam)
   if(FIXOS[u]&&FIXOS[u].pass===p){
-    // Garantir que está no storage também
     garantirUsuariosPadrao();
     CU={key:u,...FIXOS[u]};startApp();return;
   }
-  // Depois verificar operadores cadastrados no storage
+
   garantirUsuariosPadrao();
   const users=S.g('users')||{};
+
+  // 1. Busca exata pela key e senha
   if(users[u]&&users[u].pass===p){CU={key:u,...users[u]};startApp();return;}
-  // Busca case-insensitive
-  const matchKey=Object.keys(users).find(k=>k.toLowerCase()===u&&users[k].pass===p);
+
+  // 2. Busca case-insensitive
+  const matchKey=Object.keys(users).find(function(k){return k.toLowerCase()===u&&users[k].pass===p;});
   if(matchKey){CU={key:matchKey,...users[matchKey]};startApp();return;}
-  // Verificar operadores — tenta a senha salva E op123 como fallback
-  const opMatch=Object.entries(users).find(([k,v])=>{
-    if(k.toLowerCase()!==u) return false;
-    if(v.nivel==='OPERACIONAL'||v.nivel==='LIDER'){
-      return v.pass===p || (!v.pass && p==='op123') || (!v.pass && p==='lid123');
-    }
+
+  // 3. Operador/Lider com senha padrao (op123 / lid123)
+  const entries=Object.entries(users);
+  const opPadrao=entries.find(function(e){
+    const k=e[0],v=e[1];
+    if(k.toLowerCase()!==u)return false;
+    if(v.nivel==='OPERACIONAL')return p==='op123'||v.pass===p;
+    if(v.nivel==='LIDER')return p==='lid123'||v.pass===p;
     return false;
   });
-  if(opMatch){
-    // Garantir que a senha fica salva
-    if(!opMatch[1].pass){
-      users[opMatch[0]].pass=p;
-      S.s('users',users);
-    }
-    CU={key:opMatch[0],...opMatch[1]};startApp();return;
+  if(opPadrao){
+    if(opPadrao[1].pass!==p){users[opPadrao[0]].pass=p;S.s('users',users);}
+    CU={key:opPadrao[0],...opPadrao[1]};startApp();return;
   }
+
+  // 4. Busca pelo nome (ex: digita "neymar" acha "neymar.jr")
+  const byNome=entries.find(function(e){
+    const k=e[0],v=e[1];
+    const nome=(v.nome||'').toLowerCase();
+    const keyL=k.toLowerCase();
+    const senhaOk=(v.nivel==='OPERACIONAL'&&p==='op123')||(v.nivel==='LIDER'&&p==='lid123')||v.pass===p;
+    if(!senhaOk)return false;
+    return keyL.startsWith(u)||nome.startsWith(u)||keyL.includes(u);
+  });
+  if(byNome){CU={key:byNome[0],...byNome[1]};startApp();return;}
+
+  // 5. op01-op15 com op123 — cria automaticamente se nao existe
+  const isOpCode=/^op\d+$/.test(u);
+  if(isOpCode&&p==='op123'){
+    const novoOp={pass:'op123',nome:u.toUpperCase(),nivel:'OPERACIONAL',cargo:'Auxiliar de Logistica',time:'ta',setor:'picking',meta:40,admissao:new Date().toISOString().split('T')[0]};
+    users[u]=novoOp;S.s('users',users);
+    CU={key:u,...novoOp};startApp();return;
+  }
+
+  // Erro de login
   const errEl=document.getElementById('lerr');
   errEl.style.display='block';
   errEl.textContent='Usuario ou senha incorretos. Contate o coordenador do projeto.';
-  setTimeout(()=>{errEl.style.display='none';errEl.textContent='Usuário ou senha incorretos.';},5000);
+  setTimeout(function(){errEl.style.display='none';},5000);
 }
 
 function sair(){CU=null;rhDesbloqueado=false;location.reload();}
