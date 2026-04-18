@@ -275,7 +275,7 @@ tr:last-child td{border-bottom:none;}
 <!-- ═══ LOGIN ═══ -->
 <div id="login-scr">
 <div class="lbox">
-  <div class="llogo"><div class="lbrand">LOGITREIN 4.0</div><div class="lver">Sistema de Gestão Operacional — Palmas/TO</div><div class="lver" style="margin-top:4px;color:var(--g)">✓ versão v10 — arquivo correto</div></div>
+  <div class="llogo"><div class="lbrand">LOGITREIN 4.0</div><div class="lver">Sistema de Gestão Operacional — Palmas/TO</div><div class="lver" style="margin-top:4px;color:var(--g)">✓ versão v12 — arquivo correto</div></div>
   <div class="lcard">
     <h2>Acessar sistema</h2>
     <div class="lf"><label>Usuário</label><input id="lu" placeholder="ex: lider.a" autocomplete="off"></div>
@@ -330,7 +330,7 @@ tr:last-child td{border-bottom:none;}
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
-  <div class="sb-logo"><div class="sb-brand">LOGITREIN</div><div class="sb-ver">4.0 · Palmas/TO · v10</div></div>
+  <div class="sb-logo"><div class="sb-brand">LOGITREIN</div><div class="sb-ver">4.0 · Palmas/TO · v12</div></div>
   
   <div class="sb-sec"><div class="sb-sec-lbl">Principal</div>
     <button class="sb-item on" onclick="nav('dash',this)"><span class="ico">📊</span>Dashboard</button>
@@ -1013,7 +1013,17 @@ tr:last-child td{border-bottom:none;}
   <div class="al info" style="margin-bottom:12px;font-size:11px;">Após o cadastro, todos os fluxos RH são criados automaticamente: ponto, entrevista, NR-1, DISC e plano de carreira.</div>
   <div class="fg t">
     <div class="ff"><label>Nome Completo</label><input id="nm-nome" placeholder="Nome do funcionário"></div>
-    <div class="ff"><label>Login (usuário)</label><input id="nm-user" placeholder="ex: joao.silva"></div>
+    <div class="ff"><label>Login (usuário)</label><input id="nm-user" placeholder="ex: joao.silva" oninput="nmSugerirSenha()"></div>
+    <div class="ff"><label>Nível de Acesso</label>
+      <select id="nm-nivel" onchange="nmSugerirSenha()">
+        <option value="OPERACIONAL">Operador / Auxiliar</option>
+        <option value="LIDER">Líder de Time</option>
+      </select>
+    </div>
+    <div class="ff">
+      <label>Senha <span style="font-size:10px;color:var(--mu)" id="nm-senha-hint">(padrão: op123)</span></label>
+      <input id="nm-pass" placeholder="op123" value="op123" style="font-family:var(--mono)">
+    </div>
     <div class="ff"><label>Cargo / Função</label>
       <select id="nm-cargo">
         <option>Auxiliar de Logística</option><option>Operador</option><option>Conferente</option>
@@ -1030,7 +1040,12 @@ tr:last-child td{border-bottom:none;}
     <div class="ff"><label>Time</label><select id="nm-time"></select></div>
     <div class="ff"><label>Meta diária</label><input id="nm-meta" type="number" value="40" min="1"></div>
   </div>
-  <button class="btn gr" style="width:100%;padding:12px;margin-top:4px" onclick="salvarMembro()">Cadastrar + Criar Fluxos RH</button>
+  <!-- Preview do login que será criado -->
+  <div style="background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 12px;margin-bottom:12px;font-size:12px;">
+    <div style="color:var(--mu);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Login que será criado</div>
+    <div id="nm-preview" style="font-family:var(--mono);color:var(--g)">Preencha nome e usuário acima</div>
+  </div>
+  <button class="btn gr" style="width:100%;padding:12px;margin-top:4px" onclick="salvarMembro()">✓ Cadastrar + Criar Fluxos RH</button>
   <div class="al ok" id="nm-ok" style="display:none;margin-top:10px"></div>
 </div></div>
 
@@ -1348,12 +1363,19 @@ function garantirUsuariosPadrao(){
     if(!users[k]){
       users[k]=v;
     } else {
-      // Força senha e nivel corretos — nunca deixa mudar
       users[k].pass=v.pass;
       users[k].nivel=v.nivel;
       users[k].cargo=v.cargo;
-      // Preserva nome personalizado se o líder mudou
       if(!users[k].nome||users[k].nome===v.nome) users[k].nome=v.nome;
+    }
+  });
+  // Corrigir operadores sem senha definida — op123 como padrão
+  Object.entries(users).forEach(([k,u])=>{
+    if(u.nivel==='OPERACIONAL'&&(!u.pass||u.pass==='')){
+      users[k].pass='op123';
+    }
+    if(u.nivel==='LIDER'&&(!u.pass||u.pass==='')){
+      users[k].pass='lid123';
     }
   });
   S.s('users',users);
@@ -1573,9 +1595,22 @@ function doLogin(){
   // Busca case-insensitive
   const matchKey=Object.keys(users).find(k=>k.toLowerCase()===u&&users[k].pass===p);
   if(matchKey){CU={key:matchKey,...users[matchKey]};startApp();return;}
-  // Verificar operadores com senha padrão op123
-  const opMatch=Object.entries(users).find(([k,v])=>k.toLowerCase()===u&&v.nivel==='OPERACIONAL'&&p==='op123');
-  if(opMatch){CU={key:opMatch[0],...opMatch[1]};startApp();return;}
+  // Verificar operadores — tenta a senha salva E op123 como fallback
+  const opMatch=Object.entries(users).find(([k,v])=>{
+    if(k.toLowerCase()!==u) return false;
+    if(v.nivel==='OPERACIONAL'||v.nivel==='LIDER'){
+      return v.pass===p || (!v.pass && p==='op123') || (!v.pass && p==='lid123');
+    }
+    return false;
+  });
+  if(opMatch){
+    // Garantir que a senha fica salva
+    if(!opMatch[1].pass){
+      users[opMatch[0]].pass=p;
+      S.s('users',users);
+    }
+    CU={key:opMatch[0],...opMatch[1]};startApp();return;
+  }
   const errEl=document.getElementById('lerr');
   errEl.style.display='block';
   errEl.textContent='Usuario ou senha incorretos. Contate o coordenador do projeto.';
@@ -2057,6 +2092,20 @@ function salvarCargo(uk,cargo){const users=S.g('users')||{};if(users[uk])users[u
 // ══════════════════════════════════════════════════════════════
 // ADICIONAR MEMBRO — CRIA FLUXOS AUTOMÁTICOS RH
 // ══════════════════════════════════════════════════════════════
+function nmSugerirSenha(){
+  var nivel=document.getElementById('nm-nivel')&&document.getElementById('nm-nivel').value;
+  var hint=document.getElementById('nm-senha-hint');
+  var passInput=document.getElementById('nm-pass');
+  var senhaDefault=nivel==='LIDER'?'lid123':'op123';
+  if(hint)hint.textContent='(padrão: '+senhaDefault+')';
+  if(passInput&&(passInput.value==='op123'||passInput.value==='lid123'))passInput.value=senhaDefault;
+  // Atualizar preview
+  var user=document.getElementById('nm-user')&&document.getElementById('nm-user').value.trim().toLowerCase();
+  var prev=document.getElementById('nm-preview');
+  if(prev&&user)prev.textContent='usuário: '+user+' / senha: '+(passInput?passInput.value:senhaDefault);
+  else if(prev)prev.textContent='Preencha nome e usuário acima';
+}
+
 function salvarMembro(){
   const nome=document.getElementById('nm-nome').value.trim();
   const user=document.getElementById('nm-user').value.trim().toLowerCase();
@@ -2064,20 +2113,53 @@ function salvarMembro(){
   const time=document.getElementById('nm-time').value;
   const setor=document.getElementById('nm-setor').value;
   const meta=parseInt(document.getElementById('nm-meta').value)||40;
-  if(!nome||!user){alert('Nome e usuário são obrigatórios.');return;}
-  // Verificar se lider só cadastra no próprio time
-  if(CU.nivel==='LIDER'&&time!==CU.time&&CU.time){
-    // Permitir se quiser cadastrar no time dele mesmo
-  }
+  const nivel=(document.getElementById('nm-nivel')&&document.getElementById('nm-nivel').value)||'OPERACIONAL';
+  const pass=(document.getElementById('nm-pass')&&document.getElementById('nm-pass').value.trim())||(nivel==='LIDER'?'lid123':'op123');
+
+  if(!nome){alert('Nome é obrigatório.');return;}
+  if(!user){alert('Login (usuário) é obrigatório.');return;}
+  if(!pass){alert('Senha é obrigatória.');return;}
+
+  // Verificar duplicata
   const users=S.g('users')||{};
-  users[user]={pass:'op123',nome,nivel:'OPERACIONAL',cargo,time,setor,meta,admissao:new Date().toISOString().split('T')[0]};
+  if(users[user]){
+    if(!confirm('Usuário "'+user+'" já existe. Deseja sobrescrever os dados?'))return;
+  }
+
+  // Salvar com todos os campos
+  users[user]={
+    pass:pass,
+    nome:nome,
+    nivel:nivel,
+    cargo:cargo,
+    time:time,
+    setor:setor,
+    meta:meta,
+    admissao:new Date().toISOString().split('T')[0]
+  };
   S.s('users',users);
+
   // CRIAR FLUXOS RH AUTOMATICAMENTE
   criarFluxosRH(nome,cargo,setor,time);
+
   const ok=document.getElementById('nm-ok');
   ok.style.display='block';
-  ok.textContent=`✓ ${nome} cadastrado(a)! Ponto, entrevista, NR-1 e plano de carreira criados automaticamente.`;
-  setTimeout(()=>{ok.style.display='none';fecharModal('mod-addmem');renderTeams();populateSelects();},2500);
+  ok.style.background='rgba(52,211,153,.12)';
+  ok.innerHTML='<strong>✓ '+nome+' cadastrado(a)!</strong><br>'
+    +'Login: <strong style="font-family:var(--mono)">'+user+'</strong> / Senha: <strong style="font-family:var(--mono)">'+pass+'</strong><br>'
+    +'Ponto, NR-1 e plano de carreira criados automaticamente.';
+  
+  // Limpar campos para próximo cadastro
+  setTimeout(()=>{
+    ok.style.display='none';
+    document.getElementById('nm-nome').value='';
+    document.getElementById('nm-user').value='';
+    document.getElementById('nm-pass').value='op123';
+    document.getElementById('nm-preview').textContent='Preencha nome e usuário acima';
+    renderTeams();
+    populateSelects();
+    // Não fecha o modal automaticamente — permite cadastrar vários
+  },3000);
 }
 
 function criarFluxosRH(nome,cargo,setor,time){
@@ -3491,7 +3573,7 @@ function exportarExcelRH(){
 // ══════════════════════════════════════════════════════════════
 // INIT — versão v11, força recriação de usuários padrão
 // ══════════════════════════════════════════════════════════════
-const SYS_VERSION = 'lt4_v11';
+const SYS_VERSION = 'lt4_v12';
 if(localStorage.getItem('lt4_sys_ver') !== SYS_VERSION){
   const existingUsers = JSON.parse(localStorage.getItem('lt4_users')||'{}');
   const padroes = {
