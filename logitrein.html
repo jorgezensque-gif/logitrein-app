@@ -1204,24 +1204,61 @@ tr:last-child td{border-bottom:none;}
   <button class="btn pr" style="width:100%;padding:12px" onclick="salvarFeriado()">Adicionar</button>
 </div></div>
 
-<div class="ov" id="mod-dp-contrato"><div class="mod">
-  <div class="mod-h"><h3>📄 Novo Contrato</h3><button class="xbtn" onclick="fecharModal('mod-dp-contrato')">✕</button></div>
-  <div class="ff"><label>Funcionário</label><select id="dp-cont-func"></select></div>
+<div class="ov" id="mod-dp-contrato"><div class="mod" style="max-width:620px">
+  <div class="mod-h"><h3>📄 Novo Contrato de Trabalho</h3><button class="xbtn" onclick="fecharModal('mod-dp-contrato')">✕</button></div>
+  
+  <!-- Fonte: candidatos aprovados do RH ou funcionários cadastrados -->
+  <div style="display:flex;gap:8px;margin-bottom:10px">
+    <button onclick="dpContFonte('aprovados',this)" class="btn pr sm" id="dp-cont-btn-aprov" style="flex:1">👥 Aprovados no RH</button>
+    <button onclick="dpContFonte('todos',this)" class="btn sec sm" id="dp-cont-btn-todos" style="flex:1">📋 Todos os Funcionários</button>
+  </div>
+  <div id="dp-cont-fonte-info" class="al info" style="font-size:11px;margin-bottom:10px;display:none"></div>
+  
+  <div class="ff"><label>Funcionário</label>
+    <select id="dp-cont-func" onchange="dpContOnFunc()"></select>
+  </div>
+  
+  <!-- Dados do funcionário selecionado -->
+  <div id="dp-cont-func-info" style="background:var(--bg3);border-radius:var(--rs);padding:10px 12px;margin-bottom:10px;font-size:12px;display:none">
+    <div style="color:var(--mu);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Dados do Funcionário</div>
+    <div id="dp-cont-func-dados" style="color:var(--tx)"></div>
+  </div>
+  
   <div class="ff"><label>Tipo de Contrato</label>
-    <select id="dp-cont-tipo">
+    <select id="dp-cont-tipo" onchange="dpContOnTipo()">
       <option value="indeterminado">Prazo Indeterminado (CLT)</option>
-      <option value="experiencia">Período de Experiência (45+45 dias)</option>
+      <option value="experiencia" selected>Período de Experiência (30+60 dias = 90 dias)</option>
       <option value="determinado">Prazo Determinado</option>
       <option value="menor_aprendiz">Menor Aprendiz (14-24 anos)</option>
       <option value="estagio">Estágio</option>
     </select>
   </div>
-  <div class="fg t">
-    <div class="ff"><label>Data de Início</label><input id="dp-cont-inicio" type="date"></div>
-    <div class="ff"><label>Data Fim (se houver)</label><input id="dp-cont-fim" type="date"></div>
+  
+  <!-- Período de experiência: 30+60 dias com marcos -->
+  <div id="dp-cont-exp-info" style="background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.15);border-radius:var(--rs);padding:10px 12px;margin-bottom:10px;font-size:12px">
+    <div style="color:var(--a);font-weight:600;margin-bottom:6px">📅 Marcos do Período de Experiência (CLT Art.443)</div>
+    <div id="dp-cont-marcos" style="color:var(--mu)">Informe a data de início para calcular</div>
   </div>
-  <div class="ff"><label>Observações</label><textarea id="dp-cont-obs" placeholder="Cláusulas especiais, condições..."></textarea></div>
-  <button class="btn pr" style="width:100%;padding:12px" onclick="salvarContrato()">Registrar Contrato</button>
+  
+  <div class="fg t">
+    <div class="ff"><label>Data de Início</label><input id="dp-cont-inicio" type="date" onchange="dpContCalcMarcos()"></div>
+    <div class="ff"><label>Salário Contratado (R$)</label><input id="dp-cont-salario" type="number" min="1412" step="50" value="1412"></div>
+    <div class="ff"><label>Cargo na Contratação</label><input id="dp-cont-cargo" placeholder="Auxiliar de Logística"></div>
+    <div class="ff"><label>Jornada</label>
+      <select id="dp-cont-jornada">
+        <option value="4h/dia">4h/dia (LogiTrein — 88h/mês)</option>
+        <option value="6h/dia">6h/dia (menor aprendiz — 132h/mês)</option>
+        <option value="8h/dia">8h/dia (integral — 176h/mês)</option>
+      </select>
+    </div>
+  </div>
+  <div class="ff"><label>Observações / Cláusulas Especiais</label>
+    <textarea id="dp-cont-obs" placeholder="Cláusulas especiais, benefícios acordados, condições..."></textarea></div>
+  
+  <div style="display:flex;gap:8px;margin-top:4px">
+    <button class="btn pr" style="flex:1;padding:12px" onclick="salvarContrato()">✓ Registrar Contrato</button>
+    <button class="btn warn" style="flex:1;padding:12px" onclick="gerarContratoImpresso()">🖨️ Gerar + Imprimir</button>
+  </div>
 </div></div>
 
 <!-- DP GATE — senha de acesso -->
@@ -4107,27 +4144,53 @@ function carregarFeriadosNacionais(){
 function renderDPContratos(){
   var contratos=S.g('dp_contratos')||[];
   var el=document.getElementById('dp-contratos-list');
-  if(!contratos.length){el.innerHTML='<div style="color:var(--mu);font-size:13px;text-align:center;padding:20px">Nenhum contrato registrado.</div>';return;}
-  var TIPO_L={indeterminado:'CLT Indeterminado',experiencia:'Período de Experiência',determinado:'Prazo Determinado',menor_aprendiz:'Menor Aprendiz',estagio:'Estágio'};
+  if(!el)return;
+  if(!contratos.length){el.innerHTML='<div style="color:var(--mu);font-size:13px;text-align:center;padding:20px">Nenhum contrato. Clique em "+ Novo Contrato" para começar.</div>';return;}
+  var TIPO_L={indeterminado:'CLT Indeterminado',experiencia:'Período de Experiência (90 dias)',determinado:'Prazo Determinado',menor_aprendiz:'Menor Aprendiz',estagio:'Estágio'};
   var hoje=new Date().toISOString().split('T')[0];
   el.innerHTML=contratos.map(function(c){
     var vencendo=c.fim&&c.fim<new Date(Date.now()+30*24*3600*1000).toISOString().split('T')[0]&&c.fim>=hoje;
     var vencido=c.fim&&c.fim<hoje;
-    return '<div style="background:var(--bg3);border-left:3px solid '+(vencido?'var(--r)':vencendo?'var(--y)':'var(--g)')+';border-radius:var(--rs);padding:12px;margin-bottom:8px">'
+    var cor=vencido?'var(--r)':vencendo?'var(--y)':'var(--g)';
+    var badge=vencido?'<span class="b r">Vencido</span>':vencendo?'<span class="b y">Vence em breve</span>':'<span class="b g">Ativo</span>';
+    var marcosHtml='';
+    if(c.tipo==='experiencia'&&c.inicio){
+      var d=new Date(c.inicio+'T12:00');
+      var d30=new Date(d);d30.setDate(d30.getDate()+30);
+      var d60=new Date(d);d60.setDate(d60.getDate()+60);
+      var d90=new Date(d);d90.setDate(d90.getDate()+90);
+      var now=new Date();
+      marcosHtml='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">'
+        +'<span class="b '+(now>=d30?'g':'y')+'" style="font-size:10px">30d: '+d30.toLocaleDateString('pt-BR')+(now>=d30?' ✓':'')+'</span>'
+        +'<span class="b '+(now>=d60?'g':'y')+'" style="font-size:10px">60d: '+d60.toLocaleDateString('pt-BR')+(now>=d60?' ✓':'')+'</span>'
+        +'<span class="b '+(now>=d90?'g':'a')+'" style="font-size:10px">90d: '+d90.toLocaleDateString('pt-BR')+(now>=d90?' ✓':'')+'</span>'
+        +'</div>';
+    }
+    var dataIni=c.inicio?new Date(c.inicio+'T12:00').toLocaleDateString('pt-BR'):'—';
+    var dataFim=c.fim?new Date(c.fim+'T12:00').toLocaleDateString('pt-BR'):'';
+    return '<div style="background:var(--bg3);border-left:3px solid '+cor+';border-radius:var(--rs);padding:12px;margin-bottom:10px">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">'
-      +'<div><div style="font-size:13px;font-weight:600">'+c.func+'</div>'
-      +'<div style="font-size:11px;color:var(--mu);margin-top:2px">'+TIPO_L[c.tipo]+'</div>'
-      +'<div style="font-size:11px;color:var(--mu)">Início: '+new Date(c.inicio+'T12:00').toLocaleDateString('pt-BR')+(c.fim?' · Fim: '+new Date(c.fim+'T12:00').toLocaleDateString('pt-BR'):'')+'</div>'
-      +(c.obs?'<div style="font-size:11px;color:var(--mu);font-style:italic;margin-top:4px">'+c.obs+'</div>':'')
+      +'<div style="flex:1">'
+      +'<div style="font-size:14px;font-weight:700;margin-bottom:2px">'+c.func+'</div>'
+      +'<div style="font-size:12px;color:var(--a)">'+TIPO_L[c.tipo]+'</div>'
+      +'<div style="font-size:11px;color:var(--mu);margin-top:2px">Início: '+dataIni+(dataFim?' · Fim: '+dataFim:'')+'</div>'
+      +(c.obs?'<div style="font-size:11px;color:var(--mu);font-style:italic;margin-top:3px">'+c.obs+'</div>':'')
+      +marcosHtml
       +'</div>'
-      +(vencido?'<span class="b r">Vencido</span>':vencendo?'<span class="b y">Vence em breve</span>':'<span class="b g">Ativo</span>')
-      +'</div></div>';
+      +badge
+      +'</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:8px;border-top:1px solid var(--bdr)">'
+      +'<button onclick="gerarContratoTrabalho(\''+c.id+'\')" style="background:rgba(52,211,153,.1);color:var(--g);border:1px solid rgba(52,211,153,.25);border-radius:var(--rs);padding:6px 14px;font-family:var(--sans);font-size:12px;cursor:pointer;font-weight:600">📄 Gerar Contrato PDF</button>'
+      +'<button onclick="gerarContrachequeRapido(\''+c.id+'\')" style="background:rgba(56,189,248,.1);color:var(--a);border:1px solid rgba(56,189,248,.25);border-radius:var(--rs);padding:6px 14px;font-family:var(--sans);font-size:12px;cursor:pointer;font-weight:600">🧾 Contracheque</button>'
+      +'</div>'
+      +'</div>';
   }).join('');
-  // Popular select modal
+  // Popular selects dos modais
   var users=S.g('users')||{};
   var sel=document.getElementById('dp-cont-func');
-  if(sel)sel.innerHTML='<option>Selecionar...</option>'+Object.values(users).filter(function(u){return u.nivel==='OPERACIONAL';}).map(function(u){return '<option>'+u.nome+'</option>';}).join('');
+  if(sel){sel.innerHTML='<option value="">Selecionar aprovado no RH...</option>'+Object.entries(users).filter(function(e){return e[1].nivel==='OPERACIONAL';}).map(function(e){return '<option value="'+e[0]+'">'+e[1].nome+' — '+e[1].cargo+'</option>';}).join('');}
 }
+
 function salvarContrato(){
   var func=document.getElementById('dp-cont-func').value;
   if(!func||func==='Selecionar...'){alert('Selecione um funcionário.');return;}
@@ -4551,6 +4614,288 @@ dpTab=function(id,btn){
     if(el2)el2.style.display='block';
   }
 };
+
+// ══════════════════════════════════════════════════════════════
+// GERAR CONTRATO DE TRABALHO — Impressão/PDF
+// ══════════════════════════════════════════════════════════════
+function gerarContratoTrabalho(contratoId){
+  var contratos=S.g('dp_contratos')||[];
+  var c=contratos.find(function(x){return x.id===contratoId;});
+  if(!c){alert('Contrato não encontrado.');return;}
+  var users=S.g('users')||{};
+  var salarios=S.g('dp_salarios')||{};
+  // Achar o usuário pelo nome
+  var userKey=Object.keys(users).find(function(k){return users[k].nome===c.func;});
+  var u=userKey?users[userKey]:{nome:c.func,cargo:'Auxiliar de Logística',setor:'picking'};
+  var sal=salarios[userKey]||{salario:1412,carga:88};
+  
+  var TIPO_L={
+    indeterminado:'Contrato por Prazo Indeterminado (CLT)',
+    experiencia:'Contrato de Experiência — 30+60 dias (CLT Art.443, §2º, "c")',
+    determinado:'Contrato por Prazo Determinado (CLT Art.443)',
+    menor_aprendiz:'Contrato de Aprendizagem (CLT Art.428)',
+    estagio:'Contrato de Estágio (Lei 11.788/2008)'
+  };
+
+  var dataInicio=c.inicio?new Date(c.inicio+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'}):'___/___/______';
+  var dataHoje=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  
+  // Calcular marcos para período de experiência
+  var marco30='',marco60='',marco90='';
+  if(c.inicio&&c.tipo==='experiencia'){
+    var d=new Date(c.inicio+'T12:00');
+    var d30=new Date(d);d30.setDate(d30.getDate()+30);
+    var d60=new Date(d);d60.setDate(d60.getDate()+60);
+    var d90=new Date(d);d90.setDate(d90.getDate()+90);
+    marco30=d30.toLocaleDateString('pt-BR');
+    marco60=d60.toLocaleDateString('pt-BR');
+    marco90=d90.toLocaleDateString('pt-BR');
+  }
+
+  var html='<!DOCTYPE html><html lang="pt-br"><head><meta charset="UTF-8">'
+    +'<title>Contrato de Trabalho — '+c.func+'</title>'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0;}'
+    +'body{font-family:Arial,sans-serif;font-size:12px;color:#000;background:#fff;padding:20px;}'
+    +'h1{font-size:16px;text-align:center;text-transform:uppercase;margin-bottom:4px;}'
+    +'.sub{text-align:center;font-size:12px;margin-bottom:20px;color:#333;}'
+    +'.empresa{text-align:center;font-size:13px;font-weight:bold;margin-bottom:6px;}'
+    +'.linha{border-bottom:1px solid #000;padding-bottom:4px;margin-bottom:14px;}'
+    +'.secao{font-size:13px;font-weight:bold;text-transform:uppercase;margin:18px 0 8px;border-bottom:2px solid #000;padding-bottom:3px;}'
+    +'.clausula{margin-bottom:12px;text-align:justify;line-height:1.6;}'
+    +'.clausula strong{font-weight:bold;}'
+    +'.destaque{background:#f5f5f5;border:1px solid #ccc;padding:10px;margin:10px 0;border-radius:4px;}'
+    +'.marcos{width:100%;border-collapse:collapse;margin:10px 0;}'
+    +'.marcos th,.marcos td{border:1px solid #ccc;padding:8px;text-align:center;font-size:12px;}'
+    +'.marcos th{background:#333;color:#fff;}'
+    +'.assinaturas{display:flex;gap:40px;margin-top:50px;}'
+    +'.assin{flex:1;text-align:center;}'
+    +'.assin-linha{border-top:1px solid #000;padding-top:6px;margin-top:40px;}'
+    +'@media print{body{padding:10px;} button{display:none!important;}}'
+    +'</style></head><body>'
+    +'<div style="text-align:center;margin-bottom:16px">'
+    +'<div class="empresa">LOGITREIN 4.0 — EMPRESA JÚNIOR DE LOGÍSTICA</div>'
+    +'<div style="font-size:11px;color:#555">Palmas — Tocantins — Brasil | logitreineduca@gmail.com</div>'
+    +'<div style="border-bottom:2px solid #000;margin:10px 0"></div>'
+    +'<h1>'+TIPO_L[c.tipo]||'Contrato de Trabalho'+'</h1>'
+    +'<div class="sub">Pelo presente instrumento particular, as partes abaixo identificadas celebram o presente contrato:</div>'
+    +'</div>'
+
+    +'<div class="secao">1. Das Partes</div>'
+    +'<div class="clausula">'
+    +'<strong>EMPREGADORA:</strong> LogiTrein 4.0 — Empresa Júnior de Logística, com sede em Palmas/TO, doravante denominada simplesmente <strong>EMPRESA</strong>.<br><br>'
+    +'<strong>EMPREGADO(A):</strong> '+c.func+', portador(a) de documentos a serem arquivados no setor de RH, residente em Palmas/TO, doravante denominado(a) simplesmente <strong>COLABORADOR(A)</strong>.'
+    +'</div>'
+
+    +'<div class="secao">2. Do Objeto e Função</div>'
+    +'<div class="clausula">'
+    +'O(A) COLABORADOR(A) é admitido(a) para exercer a função de <strong>'+u.cargo+'</strong>, no setor de <strong>'+(u.setor||'Operacional')+'</strong>, '
+    +'com início em <strong>'+dataInicio+'</strong>, devendo cumprir as normas internas, regulamentos e procedimentos da EMPRESA.'
+    +'</div>'
+
+    +'<div class="secao">3. Da Jornada de Trabalho</div>'
+    +'<div class="clausula">'
+    +'A jornada de trabalho será de <strong>4 (quatro) horas diárias</strong>, de segunda a sexta-feira, totalizando <strong>20 (vinte) horas semanais</strong>, '
+    +'respeitando os intervalos e descansos previstos em lei. Horas extras, quando necessárias, serão compensadas conforme CLT Art.59.'
+    +'</div>'
+
+    +'<div class="secao">4. Da Remuneração</div>'
+    +'<div class="clausula">'
+    +'O(A) COLABORADOR(A) receberá a remuneração mensal de <strong>R$ '+parseFloat(sal.salario||1412).toFixed(2).replace('.',',')+'</strong> '
+    +'('+valorPorExtenso(sal.salario||1412)+'), paga até o 5º dia útil do mês subsequente, mediante recibo de pagamento (contracheque).'
+    +'</div>';
+
+  if(c.tipo==='experiencia'){
+    html+='<div class="secao">5. Do Período de Experiência (CLT Art.443, §2º, "c")</div>'
+    +'<div class="clausula">'
+    +'O presente contrato é firmado pelo regime de <strong>Experiência</strong>, com prazo total de <strong>90 (noventa) dias</strong>, dividido em dois períodos:'
+    +'</div>'
+    +'<table class="marcos"><thead><tr><th>Período</th><th>Prazo</th><th>Data</th><th>Ação</th></tr></thead><tbody>'
+    +'<tr><td>1º Período</td><td>30 dias</td><td>'+marco30+'</td><td>Avaliação de desempenho obrigatória</td></tr>'
+    +'<tr><td>Prorrogação</td><td>+60 dias</td><td>'+marco60+'</td><td>Confirmação ou renovação do contrato</td></tr>'
+    +'<tr><td>Encerramento</td><td>90 dias</td><td><strong>'+marco90+'</strong></td><td>Efetivação ou desligamento</td></tr>'
+    +'</tbody></table>'
+    +'<div class="clausula" style="margin-top:10px">'
+    +'Ao término do prazo, caso não haja manifestação de qualquer das partes, o contrato converte-se automaticamente em <strong>Contrato por Prazo Indeterminado</strong>.'
+    +'</div>';
+  } else {
+    html+='<div class="secao">5. Do Prazo do Contrato</div>'
+    +'<div class="clausula">O presente contrato é firmado pelo regime de <strong>'+(TIPO_L[c.tipo]||c.tipo)+'</strong>.'+(c.fim?' Término previsto: <strong>'+new Date(c.fim+'T12:00').toLocaleDateString('pt-BR')+'</strong>.':'')+'</div>';
+  }
+
+  html+='<div class="secao">6. Das Obrigações do Colaborador</div>'
+    +'<div class="clausula">O(A) COLABORADOR(A) compromete-se a: (a) cumprir as ordens de serviço (OS) alocadas diariamente; '
+    +'(b) atingir a meta mínima de <strong>40 OS por turno</strong>; (c) respeitar as normas de segurança (NR-1); '
+    +'(d) manter conduta ética e profissional; (e) registrar o ponto eletrônico no sistema LogiTrein.</div>'
+
+    +'<div class="secao">7. Das Disposições Gerais</div>'
+    +'<div class="clausula">Os casos omissos serão regulados pela Consolidação das Leis do Trabalho (CLT) e legislação complementar vigente. '
+    +'O presente contrato é firmado em 2 (duas) vias de igual teor, ficando uma com cada parte.</div>'
+
+    +'<div class="clausula" style="margin-top:16px">Palmas/TO, '+dataHoje+'.</div>'
+
+    +'<div class="assinaturas">'
+    +'<div class="assin"><div class="assin-linha"><strong>LOGITREIN 4.0</strong><br><small>Representante Legal</small></div></div>'
+    +'<div class="assin"><div class="assin-linha"><strong>'+c.func+'</strong><br><small>'+u.cargo+'</small></div></div>'
+    +'</div>'
+
+    +'<div style="margin-top:30px;border-top:1px dashed #ccc;padding-top:10px;font-size:11px;color:#555;text-align:center">'
+    +'Testemunha 1: __________________ &nbsp;&nbsp;&nbsp; Testemunha 2: __________________'
+    +'</div>'
+
+    +'<div style="text-align:center;margin-top:20px">'
+    +'<button onclick="window.print()" style="background:#1B6CA8;color:#fff;border:none;padding:10px 24px;border-radius:6px;font-size:13px;cursor:pointer;margin-right:8px">🖨️ Imprimir / Salvar PDF</button>'
+    +'<button onclick="window.close()" style="background:#64748b;color:#fff;border:none;padding:10px 18px;border-radius:6px;font-size:13px;cursor:pointer">✕ Fechar</button>'
+    +'</div>'
+
+    +'</body></html>';
+
+  var win=window.open('','_blank','width=800,height=900');
+  if(win){win.document.write(html);win.document.close();}
+  else{alert('Popup bloqueado! Permita popups neste site para imprimir o contrato.');}
+}
+
+function valorPorExtenso(v){
+  var n=Math.floor(parseFloat(v)||1412);
+  var unidades=['','um','dois','três','quatro','cinco','seis','sete','oito','nove','dez','onze','doze','treze','quatorze','quinze','dezesseis','dezessete','dezoito','dezenove'];
+  var dezenas=['','','vinte','trinta','quarenta','cinquenta','sessenta','setenta','oitenta','noventa'];
+  if(n===1412)return 'mil quatrocentos e doze reais';
+  if(n<20)return (unidades[n]||n)+' reais';
+  if(n<100)return dezenas[Math.floor(n/10)]+(n%10?' e '+unidades[n%10]:'')+' reais';
+  if(n<1000){var c=Math.floor(n/100);var r=n%100;var cents=['','cem','duzentos','trezentos','quatrocentos','quinhentos','seiscentos','setecentos','oitocentos','novecentos'];return cents[c]+(r?' e '+(r<20?unidades[r]:dezenas[Math.floor(r/10)]+(r%10?' e '+unidades[r%10]:'')):'')+' reais';}
+  if(n<2000)return 'mil'+(n%1000?' e '+valorPorExtenso(n%1000).replace(' reais',''):'')+' reais';
+  return Math.floor(n/1000)+' mil'+(n%1000?' e '+valorPorExtenso(n%1000).replace(' reais',''):'')+' reais';
+}
+
+// ══════════════════════════════════════════════════════════════
+// GERAR CONTRACHEQUE — Impressão/PDF
+// ══════════════════════════════════════════════════════════════
+function gerarContracheque(mesAno, userKey){
+  var folhas=S.g('dp_folhas')||[];
+  var users=S.g('dp_salarios')||{};
+  var usersGeral=S.g('users')||{};
+  
+  // Encontrar folha do mês
+  var folha=folhas.find(function(f){return f.mesAno===mesAno;});
+  if(!folha){alert('Folha de '+mesAno+' não encontrada. Calcule e feche a folha primeiro.');return;}
+  
+  // Encontrar linha do funcionário
+  var linha=folha.linhas&&folha.linhas.find(function(l){return l.uk===userKey;});
+  if(!linha){
+    // Tentar pelo nome
+    var u=usersGeral[userKey];
+    if(u)linha=folha.linhas&&folha.linhas.find(function(l){return l.nome===u.nome;});
+  }
+  if(!linha){alert('Funcionário não encontrado na folha de '+mesAno);return;}
+  
+  var u=usersGeral[userKey]||{nome:linha.nome,cargo:linha.cargo};
+  var sal=users[userKey]||{salario:linha.salBruto};
+  var partes=mesAno.split('/');
+  var meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  var nomeMes=meses[parseInt(partes[0])-1]+'/'+partes[1];
+
+  var html='<!DOCTYPE html><html lang="pt-br"><head><meta charset="UTF-8">'
+    +'<title>Contracheque — '+linha.nome+' — '+nomeMes+'</title>'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0;}'
+    +'body{font-family:Arial,sans-serif;font-size:11px;color:#000;background:#fff;padding:20px;max-width:750px;margin:0 auto;}'
+    +'.header{border:2px solid #1B3A6B;padding:12px;margin-bottom:0;}'
+    +'.empresa-nome{font-size:16px;font-weight:bold;color:#1B3A6B;}'
+    +'.empresa-sub{font-size:10px;color:#555;}'
+    +'.title-holerite{background:#1B3A6B;color:#fff;text-align:center;font-size:13px;font-weight:bold;padding:6px;letter-spacing:2px;}'
+    +'.func-dados{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #ccc;margin-bottom:0;}'
+    +'.fd-item{padding:6px 10px;border-right:1px solid #ccc;border-bottom:1px solid #ccc;}'
+    +'.fd-label{font-size:9px;text-transform:uppercase;color:#666;letter-spacing:0.5px;}'
+    +'.fd-value{font-size:12px;font-weight:bold;color:#000;margin-top:2px;}'
+    +'.tabela{width:100%;border-collapse:collapse;margin-bottom:0;}'
+    +'.tabela th{background:#1B3A6B;color:#fff;padding:6px 8px;text-align:left;font-size:11px;}'
+    +'.tabela td{padding:5px 8px;border-bottom:1px solid #eee;font-size:11px;}'
+    +'.tabela .valor{text-align:right;font-family:monospace;}'
+    +'.tabela .desconto{color:#c0392b;}'
+    +'.tabela .provento{color:#27ae60;}'
+    +'.total-row{background:#f5f5f5;font-weight:bold;border-top:2px solid #1B3A6B;}'
+    +'.liquido-box{background:#1B3A6B;color:#fff;padding:12px;text-align:center;margin-top:0;}'
+    +'.liquido-label{font-size:11px;letter-spacing:1px;}'
+    +'.liquido-valor{font-size:24px;font-weight:bold;margin-top:4px;}'
+    +'.assin-area{display:flex;justify-content:space-between;margin-top:30px;padding-top:10px;}'
+    +'.assin-box{text-align:center;width:45%;}'
+    +'.assin-linha{border-top:1px solid #000;padding-top:5px;font-size:10px;color:#555;}'
+    +'@media print{body{padding:5px;} .no-print{display:none!important;}}'
+    +'</style></head><body>'
+
+    +'<div class="header">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start">'
+    +'<div><div class="empresa-nome">🚚 LOGITREIN 4.0</div>'
+    +'<div class="empresa-sub">Empresa Júnior de Logística | Palmas — Tocantins</div>'
+    +'<div class="empresa-sub">logitreineduca@gmail.com</div></div>'
+    +'<div style="text-align:right"><div style="font-size:10px;color:#555">Competência</div>'
+    +'<div style="font-size:16px;font-weight:bold;color:#1B3A6B">'+nomeMes+'</div></div>'
+    +'</div></div>'
+
+    +'<div class="title-holerite">RECIBO DE PAGAMENTO DE SALÁRIO — CONTRACHEQUE</div>'
+
+    +'<div class="func-dados">'
+    +'<div class="fd-item"><div class="fd-label">Funcionário</div><div class="fd-value">'+linha.nome+'</div></div>'
+    +'<div class="fd-item"><div class="fd-label">Função / Cargo</div><div class="fd-value">'+linha.cargo+'</div></div>'
+    +'<div class="fd-item"><div class="fd-label">Admissão</div><div class="fd-value">'+(u.admissao?new Date(u.admissao+'T12:00').toLocaleDateString('pt-BR'):'—')+'</div></div>'
+    +'<div class="fd-item"><div class="fd-label">Setor</div><div class="fd-value">'+(u.setor||'Operacional')+'</div></div>'
+    +'<div class="fd-item"><div class="fd-label">Dias Trabalhados</div><div class="fd-value">'+linha.diasTrab+' de '+linha.diasUteis+' dias úteis</div></div>'
+    +'<div class="fd-item"><div class="fd-label">Faltas</div><div class="fd-value" style="color:'+(linha.faltas>0?'#c0392b':'#27ae60')+'">'+linha.faltas+' dia(s)</div></div>'
+    +'</div>'
+
+    +'<table class="tabela"><thead>'
+    +'<tr><th>Descrição</th><th style="text-align:right">Referência</th><th style="text-align:right">Vencimentos (R$)</th><th style="text-align:right">Descontos (R$)</th></tr>'
+    +'</thead><tbody>'
+    +'<tr><td class="provento">Salário Base</td><td class="valor">'+linha.diasUteis+'d / mês</td><td class="valor provento">'+formatVal(linha.salBruto)+'</td><td></td></tr>'
+    +(linha.extrasVal>0?'<tr><td class="provento">Horas Extras (50%)</td><td class="valor">'+linha.horasExtras50+'h</td><td class="valor provento">'+formatVal(linha.extrasVal)+'</td><td></td></tr>':'')
+    +(linha.dsr>0?'<tr><td class="desconto">Desconto de Falta ('+linha.faltas+'d)</td><td class="valor">—</td><td></td><td class="valor desconto">'+formatVal(linha.dsr)+'</td></tr>':'')
+    +'<tr><td class="desconto">INSS (progressivo)</td><td class="valor">Lei 8.212</td><td></td><td class="valor desconto">'+formatVal(linha.inss)+'</td></tr>'
+    +(linha.irrf>0?'<tr><td class="desconto">IRRF (tabela progressiva)</td><td class="valor">RIR/2018</td><td></td><td class="valor desconto">'+formatVal(linha.irrf)+'</td></tr>':'<tr><td style="color:#27ae60">IRRF</td><td class="valor">—</td><td class="valor provento">Isento</td><td></td></tr>')
+    +(linha.vt>0?'<tr><td class="desconto">Vale-Transporte (6%)</td><td class="valor">Lei 7.418</td><td></td><td class="valor desconto">'+formatVal(linha.vt)+'</td></tr>':'')
+    +'<tr class="total-row"><td colspan="2">TOTAIS</td><td class="valor">'+formatVal(linha.totalBruto)+'</td><td class="valor desconto">'+formatVal(linha.totalDesc)+'</td></tr>'
+    +'</tbody></table>'
+
+    +'<div class="liquido-box">'
+    +'<div class="liquido-label">SALÁRIO LÍQUIDO A RECEBER</div>'
+    +'<div class="liquido-valor">R$ '+formatVal(linha.liquido)+'</div>'
+    +'<div style="font-size:10px;margin-top:4px;opacity:0.8">('+valorPorExtenso(linha.liquido)+')</div>'
+    +'</div>'
+
+    +'<div style="margin-top:14px;padding:8px 10px;background:#f9f9f9;border:1px solid #eee;font-size:10px;color:#555">'
+    +'<strong>Informações FGTS:</strong> Depósito de 8% sobre salário bruto (R$ '+formatVal(linha.totalBruto*0.08)+') — pago pela empresa ao FGTS do trabalhador.'
+    +'</div>'
+
+    +'<div class="assin-area">'
+    +'<div class="assin-box"><div class="assin-linha">LOGITREIN 4.0<br>Departamento Pessoal</div></div>'
+    +'<div class="assin-box"><div class="assin-linha">'+linha.nome+'<br>Declaro que recebi</div></div>'
+    +'</div>'
+
+    +'<div style="text-align:center;margin-top:20px" class="no-print">'
+    +'<button onclick="window.print()" style="background:#1B3A6B;color:#fff;border:none;padding:10px 24px;border-radius:6px;font-size:13px;cursor:pointer;margin-right:8px">🖨️ Imprimir / Salvar PDF</button>'
+    +'<button onclick="window.close()" style="background:#64748b;color:#fff;border:none;padding:10px 18px;border-radius:6px;font-size:13px;cursor:pointer">✕ Fechar</button>'
+    +'</div>'
+    +'</body></html>';
+
+  var win=window.open('','_blank','width=780,height=900');
+  if(win){win.document.write(html);win.document.close();}
+  else{alert('Popup bloqueado! Permita popups para imprimir o contracheque.');}
+}
+
+function formatVal(v){
+  return parseFloat(v||0).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
+
+// Contracheque rápido da lista de contratos (sem folha fechada)
+function gerarContrachequeRapido(contratoId){
+  var contratos=S.g('dp_contratos')||[];
+  var c=contratos.find(function(x){return x.id===contratoId;});
+  if(!c)return;
+  var folhas=S.g('dp_folhas')||[];
+  if(!folhas.length){alert('Nenhuma folha fechada. Vá em "Folha de Pagamento", calcule e feche a folha do mês primeiro.');return;}
+  var users=S.g('users')||{};
+  var userKey=Object.keys(users).find(function(k){return users[k].nome===c.func;});
+  gerarContracheque(folhas[0].mesAno, userKey||c.func);
+}
 
 initData();
 document.addEventListener('keydown',e=>{
