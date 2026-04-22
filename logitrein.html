@@ -4047,7 +4047,7 @@ function fecharFolhaMes(){
   var totalBruto=_folhaCalculada.linhas.reduce(function(a,l){return a+l.totalBruto;},0);
   var totalINSS=_folhaCalculada.linhas.reduce(function(a,l){return a+l.inss;},0);
   var totalLiquido=_folhaCalculada.linhas.reduce(function(a,l){return a+l.liquido;},0);
-  folhas.unshift({
+  var novaFolha={
     id:'fp'+Date.now(),
     mesAno:_folhaCalculada.mesAno,
     status:'Fechada',
@@ -4056,11 +4056,54 @@ function fecharFolhaMes(){
     totalINSS:Math.round(totalINSS*100)/100,
     totalLiquido:Math.round(totalLiquido*100)/100,
     linhas:_folhaCalculada.linhas
-  });
+  };
+  folhas.unshift(novaFolha);
   S.s('dp_folhas',folhas);
+
+  // ══════════════════════════════════════════
+  //  INTEGRAÇÃO LOGITREIN → BANCO LOGITREIN
+  //  Deposita automaticamente nas contas salário
+  // ══════════════════════════════════════════
+  var depositados=0, semConta=[];
+  try {
+    var bancoUsers=JSON.parse(localStorage.getItem('lt_banco_users')||'[]');
+    if(bancoUsers.length>0){
+      novaFolha.linhas.forEach(function(linha){
+        if(!linha.liquido||linha.liquido<=0)return;
+        var nNorm=(linha.nome||'').toLowerCase().trim();
+        var conta=bancoUsers.find(function(u){return u.role==='salario'&&u.ativo&&(u.nome||'').toLowerCase().trim()===nNorm;});
+        if(!conta)conta=bancoUsers.find(function(u){return u.role==='salario'&&u.ativo&&((u.nome||'').toLowerCase().includes(nNorm.split(' ')[0]));});
+        if(conta){
+          conta.saldo=(conta.saldo||0)+linha.liquido;
+          conta.transacoes=conta.transacoes||[];
+          conta.transacoes.unshift({
+            tipo:'deposito',
+            desc:'💼 Salário '+novaFolha.mesAno+' — Logitrein',
+            valor:linha.liquido,
+            dir:'in',
+            ts:new Date().toLocaleString('pt-BR')
+          });
+          depositados++;
+        } else {
+          semConta.push(linha.nome);
+        }
+      });
+      localStorage.setItem('lt_banco_users',JSON.stringify(bancoUsers));
+      // Marcar como processada no banco
+      var proc=JSON.parse(localStorage.getItem('lt_banco_folhas_proc')||'[]');
+      proc.push(novaFolha.id);
+      localStorage.setItem('lt_banco_folhas_proc',JSON.stringify(proc));
+    }
+  } catch(e){ console.warn('Bridge Banco:', e); }
+
   _folhaCalculada=null;
   document.getElementById('btn-fechar-folha').style.display='none';
-  alert('Folha fechada e salva com sucesso!');
+
+  var msg='Folha fechada e salva com sucesso!\n';
+  if(depositados>0) msg+='\n✅ BANCO LOGITREIN: '+depositados+' salário(s) depositado(s) automaticamente!';
+  if(semConta.length>0) msg+='\n⚠️ Sem conta salário no banco: '+semConta.join(', ')+'.\nAcesse o Banco → Folha → Banco para criar as contas.';
+  if(depositados===0&&semConta.length===0) msg+='\n(Banco Logitrein não detectado no navegador — abra o banco.html no mesmo navegador para integração automática.)';
+  alert(msg);
   renderDPDashboard();
 }
 
