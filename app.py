@@ -266,9 +266,8 @@ def pagina_portal():
                 Sistema de gestão logística completo. Controle de equipes, ponto eletrônico,
                 DP com folha de pagamento, banco de horas e integração com o Banco Logitrein.
             </div>
-            <div style="font-size:.75rem;color:#7a9bbf;margin-bottom:6px">
-                Logins padrão: <code style="color:#93b4f7">gestor / gest123</code> &nbsp;·&nbsp;
-                <code style="color:#93b4f7">jorge.zensque / master2026</code>
+            <div style="font-size:.75rem;color:#4a6080;margin-bottom:6px">
+                Acesse com suas credenciais fornecidas pelo coordenador.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -288,10 +287,8 @@ def pagina_portal():
                 Banco digital completo. Conta corrente, Pix, transferências, investimentos,
                 crédito, bolsa de valores e recebimento automático de folha de pagamento.
             </div>
-            <div style="font-size:.75rem;color:#7a9bbf;margin-bottom:6px">
-                Logins: <code style="color:#00c9a7">ceo / ceo123</code> &nbsp;·&nbsp;
-                <code style="color:#00c9a7">gerente1 / ger123</code> &nbsp;·&nbsp;
-                <code style="color:#86efac">maria.santos / salario1</code>
+            <div style="font-size:.75rem;color:#4a6080;margin-bottom:6px">
+                Acesse com suas credenciais fornecidas pelo gerente da agência.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -322,14 +319,14 @@ def pagina_portal():
         Ambos ficam embarcados aqui no portal Streamlit.
 
         ### 2️⃣ Logitrein → DP → Folha de Pagamento
-        1. Entre no Logitrein com `gestor / gest123`
+        1. Entre no Logitrein com suas credenciais de coordenador
         2. Vá em **DP** → **Folha de Pagamento**
         3. Selecione o mês e clique em **Calcular Folha**
         4. Clique em **✓ Fechar Folha**
         5. O sistema automaticamente deposita os salários no banco!
 
         ### 3️⃣ Banco → Conferir depósitos
-        1. Entre no Banco com `gerente1 / ger123` ou `ceo / ceo123`
+        1. Entre no Banco com suas credenciais de gerente ou CEO
         2. Clique em **💼 Folha → Banco** no menu lateral
         3. Veja as folhas processadas e os depósitos realizados
         4. Funcionários com Conta Salário recebem os valores automaticamente
@@ -339,35 +336,13 @@ def pagina_portal():
         - Clique em **+ Novo Usuário** → escolha perfil **Conta Salário**
         - O nome deve ser **idêntico** ao cadastrado no Logitrein para o depósito automático
 
-        ### 🔑 Logins Padrão
-        | Sistema | Login | Senha | Perfil |
-        |---|---|---|---|
-        | Logitrein | `gestor` | `gest123` | CEO/Gestor |
-        | Logitrein | `jorge.zensque` | `master2026` | Conselho |
-        | Logitrein | `coord.dp` | `dp2026` | DP/RH |
-        | Banco | `ceo` | `ceo123` | CEO |
-        | Banco | `gerente1` | `ger123` | Gerente |
-        | Banco | `joao.silva` | `123456` | Pessoa Física |
-        | Banco | `emp.ltda` | `empresa1` | Pessoa Jurídica |
-        | Banco | `maria.santos` | `salario1` | Conta Salário |
+        ### 🔑 Credenciais de Acesso
+        Os logins e senhas são fornecidos pelo **coordenador** (Logitrein)
+        ou pelo **gerente da agência** (Banco). Entre em contato com o responsável
+        para obter suas credenciais de acesso.
         """)
 
-    # Upload de arquivos
-    with st.expander("📁 Atualizar Arquivos HTML"):
-        st.markdown("<p style='font-size:.83rem;color:#7a9bbf'>Faça upload de versões atualizadas dos arquivos sem precisar fazer redeploy.</p>", unsafe_allow_html=True)
-        col1, col2 = st.columns(2)
-        with col1:
-            up_log = st.file_uploader("Logitrein HTML", type=['html'], key='up_logitrein')
-            if up_log:
-                dest = Path(__file__).parent / 'logitrein_v12_integrado.html'
-                dest.write_bytes(up_log.read())
-                st.success(f"✅ {up_log.name} salvo como logitrein_v12_integrado.html")
-        with col2:
-            up_banco = st.file_uploader("Banco HTML", type=['html'], key='up_banco')
-            if up_banco:
-                dest = Path(__file__).parent / 'logitrein_banco_v2.html'
-                dest.write_bytes(up_banco.read())
-                st.success(f"✅ {up_banco.name} salvo como logitrein_banco_v2.html")
+
 
 
 # ──────────────────────────────────────────────
